@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: Render hosting
+
+- Added `render.yaml` (one free web service, `om-bancs`) and `scripts/render-start.js`. The start script runs data-service and the open-book BaNCS on Render's port.
+- No app changes: same paths, the same login with both users, and any password accepted.
+- The hosted site has no mailbox and no closed book; `npm run demo` still runs everything locally.
+
 ## 2026-10-29: baseline (first commit)
 
 The state of the demo when version tracking started.

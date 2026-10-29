@@ -1,0 +1,13 @@
+# Render Blueprint: the open-book BaNCS (Maker and Checker) with its data service, on the free plan.
+# The free plan sleeps after about 15 minutes idle; waking it resets the demo data to the seed.
+services:
+  - type: web
+    name: om-bancs
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node scripts/render-start.js
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
