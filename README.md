@@ -393,7 +393,7 @@ These follow the SOP screenshots and the recording, because Seek ultimately has 
 
 ## Developer tools: dummy data
 
-**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1, 3 and 4 (119900001001, 110671307001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Status and Summary are blank for the run to fill in.
+**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1, 3 and 4 (119900001001, 110671307001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Row 4 opens Endr Quote Submission with Legal Verification blank, for the SOP's "if not pre-populated then select the Approved option". Status and Summary are blank for the run to fill in.
 
 ## Loading state
 

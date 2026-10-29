@@ -308,7 +308,7 @@
         "distributionFeeScalingPct": "0.00"
       },
       "submissionDefaults": {
-        "legalVerification": "Approved"
+        "legalVerification": ""
       }
     },
     {

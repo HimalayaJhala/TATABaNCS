@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: forms checked against the SOP
+
+- Compared every Maker form with the SOP screenshots and the recording. Endorsement Initiation, Basic Details, Acceptance and Endr Quote Submission already open with the values shown there, so no defaults changed.
+- "All admin requirements received" now lists only Accepted, No and Yes, as in the recording. Blank, Pending and Rejected were removed.
+- 112333103001 (row 4 of the dummy sheet) opens Endr Quote Submission with Legal Verification blank. This covers the SOP's "if not pre-populated then select the Approved option".
+- Rebuilt `Fee Switch-Off Calculations.xlsx` to match.
+
 ## 2026-10-29: developer tools panel cleanup
 
 - Renamed "Developer menu" to "Developer tools" and restyled it as a neutral panel, replacing the yellow note look. It has three groups: Reset data, Test data and Induced artificial latency.

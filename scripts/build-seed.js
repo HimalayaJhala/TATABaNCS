@@ -202,7 +202,9 @@ ROWS.forEach((r, i) => {
       primaryUpfront: '0.00', secondaryUpfront: '0.00', eachPremium: '0.00', immediately: '0.00',
       scalingPct: '100.00', distributionFeeScalingPct: '0.00'
     },
-    submissionDefaults: { legalVerification: scenario === 'legal-blank' ? '' : 'Approved' }
+    // The SOP: "Legal Verification, if not pre-populated then select the Approved option". 112333103001 is the dummy
+    // work list row that opens with it blank, so a run meets that branch.
+    submissionDefaults: { legalVerification: scenario === 'legal-blank' || contractNo === '112333103001' ? '' : 'Approved' }
   });
 
   // Stored VAT-inclusive; VAT-exclusive derived from it, so the pair is always consistent.
