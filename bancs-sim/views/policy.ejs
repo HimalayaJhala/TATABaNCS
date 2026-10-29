@@ -3,7 +3,7 @@
 <div class="action-bar" id="action-bar" data-block="action-bar">
 <% if (!e) { %>
   <div class="btnbar button-bar" id="bar-policy-actions" data-block="button-bar">
-    <form method="post" action="/policy/<%= id %>/endorse-alter" id="form-endorse-alter" data-busy<%- hangMs.endorseOpen ? ' data-hang-ms="' + hangMs.endorseOpen + '"' : '' %>><button class="btn" type="submit" id="btn-endorse-alter">Endorse/Alter</button></form>
+    <form method="post" action="/policy/<%= id %>/endorse-alter" id="form-endorse-alter" data-busy<%- hangMs.endorseOpen ? ' data-hang-ms="' + hangMs.endorseOpen + '"' : '' %>><button class="btn" type="submit" id="btn-endorse-alter"<%- makerOnly %>>Endorse/Alter</button></form>
     <%- include('partials/actbtn', { action: '/policy/' + id + '/action/cancel-policy', id: 'btn-cancel-policy', label: 'Cancel Policy' }) %>
     <form method="get" action="/policy/<%= id %>/endorsement-quotes"><button class="btn" type="submit" id="btn-endr-history-new">Endr History/New</button></form>
     <%- include('partials/actbtn', { action: '/policy/' + id + '/action/premium-transaction', id: 'btn-premium-transaction', label: 'Premium Transaction' }) %>

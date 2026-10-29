@@ -70,6 +70,7 @@ function advisersMaster() {
 
 function stageSharing(contractNo, serial, type, body) {
   const u = user(body.user);
+  makerOnly(u, 'Advisor Change');
   const meta = SHARING[type];
   if (!meta) throw new BancsError(56300, `Unknown remuneration sharing type ${type}.`, 400);
   const e = endorsement(contractNo, serial);
@@ -132,6 +133,7 @@ function expectedSplitFee(e) {
 
 function commitSharing(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Advisor Change');
   const e = endorsement(contractNo, serial);
   requireOpen(e);
   if (!e.types.includes('Change Advisor Details')) {
@@ -169,6 +171,7 @@ const ADVISOR_TYPES = ['Broker', 'Tied Agent', 'Franchise'];
 
 function stageAdviserChange(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Requestor Advisor Info');
   const e = endorsement(contractNo, serial);
   requireOpen(e);
   if (!e.types.includes(IMED_TYPE)) {
@@ -211,6 +214,7 @@ function stageAdviserChange(contractNo, serial, body) {
 
 function clearAdviserChange(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Requestor Advisor Info');
   const e = endorsement(contractNo, serial);
   requireOpen(e);
   if (!e.adviserChange) throw new BancsError(56412, 'Select the new adviser row to delete. Existing advisers are replaced with Add and Advisor to be Replaced.');
@@ -227,6 +231,13 @@ const toKey = d => (d || '').split('/').reverse().join('');
 const r3 = n => Math.round(n * 1000) / 1000;
 
 function cfg() { return store.get().config; }
+// Segregation of duties, the other way round from 71035: the Maker captures and submits, the Checker only verifies
+// a submitted quote and activates or rejects it (SOP: "Verification Steps - must be completed by another person").
+function makerOnly(u, what) {
+  if (u.kind === 'verifier') {
+    throw new BancsError(71037, `${what} is a Maker step. The Checker (${u.role}) verifies a submitted quote and activates or rejects it.`, 403);
+  }
+}
 
 function user(id) {
   const u = store.get().users.find(x => x.id === id);
@@ -301,6 +312,7 @@ function requesterParties(contractNo) {
 
 async function createEndorsement(contractNo, body) {
   const u = user(body.user);
+  makerOnly(u, 'Endorse/Alter');
   checkCanEndorse(contractNo);
   const types = [].concat(body.types || []).filter(Boolean);
   if (!types.length) throw new BancsError(56101, 'Please select at least one Type of Endorsement.');
@@ -352,6 +364,7 @@ function requireOpen(e) {
 // VAT Exclusive is derived from VAT Inclusive, never entered.
 async function updateFee(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Basic Details');
   const e = endorsement(contractNo, serial);
   requireOpen(e);
   if (['locked', 'finalised'].includes(e.stage)) {
@@ -385,6 +398,7 @@ async function updateFee(contractNo, serial, body) {
 
 function saveAcceptance(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Acceptance');
   const e = endorsement(contractNo, serial);
   requireOpen(e);
   if (!['Yes', 'No'].includes(body.accepted)) throw new BancsError(56201, 'Application Accepted is mandatory.');
@@ -397,6 +411,7 @@ function saveAcceptance(contractNo, serial, body) {
 
 async function runAction(contractNo, serial, action, body) {
   const u = user(body.user);
+  makerOnly(u, 'Endr Quote Summary steps');
   const e = endorsement(contractNo, serial);
   const step = STEPS.find(s => s.action === action);
   if (!step) throw new BancsError(30400, `Unknown action ${action}.`, 400);
@@ -484,6 +499,7 @@ function applySubmissionFields(e, body) {
 function saveSubmission(contractNo, serial, body) {
   const u = user(body.user);
   const e = endorsement(contractNo, serial);
+  if (e.stage !== 'submitted') makerOnly(u, 'Saving Endr Quote Submission');
   if (e.status !== S.DRAFT && e.stage !== 'finalised') {
     throw new BancsError(48100, 'Endr Quote Submission can only be saved while the endorsement is open, before it is submitted.');
   }
@@ -495,6 +511,7 @@ function saveSubmission(contractNo, serial, body) {
 
 async function submit(contractNo, serial, body) {
   const u = user(body.user);
+  makerOnly(u, 'Submit');
   const e = endorsement(contractNo, serial);
   if (e.stage !== 'finalised') {
     throw new BancsError(48101, 'Endorsement quote cannot be submitted. Finalise Endorsement has not been completed or the quote is already submitted.');
@@ -586,6 +603,8 @@ function reject(contractNo, serial, body) {
   if (![S.DRAFT, S.FINAL].includes(e.status) || e.stage === 'approved') {
     throw new BancsError(71040, 'Only an open endorsement quote can be rejected.');
   }
+  // The Checker rejects only what was submitted to them; withdrawing an unsubmitted quote is the Maker's call.
+  if (e.stage !== 'submitted') makerOnly(u, 'Rejecting a quote that has not been submitted');
   e.status = S.REJECTED;
   e.subStatus = '';
   e.stage = 'rejected';

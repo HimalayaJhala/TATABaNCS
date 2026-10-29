@@ -157,6 +157,8 @@ async function render(req, res, view, locals = {}) {
     hangMs,
     mailUrl: MAIL,
     book: BOOK, publicUrl: PUBLIC_URL,
+    checker: isChecker(req),   // the Checker sees the Maker's capture buttons greyed (rules.js refuses them anyway)
+    makerOnly: isChecker(req) ? ' disabled title="Maker step: the Checker verifies the submitted quote"' : '',
     ...locals
   });
 }
@@ -223,11 +225,16 @@ const ALWAYS_ON = ['eac', 'reject-sub-alteration', 'reject-endorsed-quote', 'fol
 const NEXT_STEP = { started: 'Create or Refresh Layer', layer: 'Calculate Premium', premium: 'End Sub Endorsement', subEnded: 'Lock EBQ', locked: 'Finalise Endorsement' };
 const STEP_ACTIONS_SET = ['create-layer', 'calculate-premium', 'start-sub-endorsement', 'end-sub-endorsement', 'lock-ebq', 'finalise'];
 
-function actionBar(e, onSummary) {
+function actionBar(e, onSummary, checker) {
   // A greyed step button says what to press instead (hover tooltip).
   const next = e.stage === 'premium' && e.calc && e.calc.stale ? 'Calculate Premium' : NEXT_STEP[e.stage];
   const tip = (action, enabled) => (!enabled && STEP_ACTIONS_SET.includes(action) && next ? `Not available yet. Next step: ${next}` : '');
-  const button = (action, enabled) => ({ action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1], enabled, tip: tip(action, enabled) });
+  // The Checker can only reject a submitted quote; every other step on this bar is the Maker's.
+  const checkerMay = action => action === 'follow-up-report' || action === 'eac' || (action === 'reject-endorsed-quote' && e.stage === 'submitted');
+  const button = (action, enabled) => {
+    if (checker && !checkerMay(action)) return { action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1], enabled: false, tip: 'Maker step: the Checker verifies the submitted quote' };
+    return { action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1], enabled, tip: tip(action, enabled) };
+  };
   if (e.stage === 'finalised') return [button('reject-endorsed-quote', true), button('follow-up-report', true)];
   // Submitted and waiting for the Checker: the quote can still be rejected; Activate is on Endr Quote Submission.
   if (e.stage === 'submitted') return [button('reject-endorsed-quote', true), button('follow-up-report', true)];
@@ -388,7 +395,7 @@ app.get('/policy/:id', requireLogin, async (req, res) => {
   const ctx = await loadCtx(req, req.params.id, 'policy-action-details');
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   render(req, res, 'policy', {
-    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false) : null,
+    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false, isChecker(req)) : null,
     breadcrumb: 'Home > Policy Servicing > Policy Action Details'
   });
 });
@@ -442,6 +449,10 @@ app.get('/policy/:id/error/already-exist', requireLogin, async (req, res) => {
 });
 
 app.post('/policy/:id/endorse-alter', requireLogin, async (req, res) => {
+  if (isChecker(req)) {
+    flash(req, 'error', fmtError({ code: 71037, message: `Endorse/Alter is a Maker step. The Checker (${req.session.user.role}) verifies a submitted quote and activates or rejects it.` }));
+    return res.redirect(`/policy/${req.params.id}`);
+  }
   const r = await timed(req, 'endorseOpen', () => api('POST', `/policies/${req.params.id}/endorse-check`));
   if (r.error) {
     if (r.error.code === 56000) return res.redirect(`/policy/${req.params.id}/error/already-exist`);
@@ -690,7 +701,7 @@ app.get('/policy/:id/quote-summary', requireLogin, async (req, res) => {
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   if (!needEndorsement(req, res, ctx)) return;
   render(req, res, 'quote-summary', {
-    ...ctx, bar: actionBar(ctx.endorsement, true), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
+    ...ctx, bar: actionBar(ctx.endorsement, true, isChecker(req)), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
   });
 });
 

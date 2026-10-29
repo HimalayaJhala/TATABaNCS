@@ -261,6 +261,30 @@ async function accept(p, contract, date) {
   await step(p, '#nav-basic-details');
   ok((await text(p, '#vat-inclusive-asset-advice-fee')) === '0.575', 'after reset fee reads 0.575');
 
+  // ---- The Checker cannot do the Maker's steps (only verify, then activate or reject a submitted quote) ----
+  const post = (m, u, body) => fetch(DATA + u, { method: m, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json());
+  await fetch(DATA + '/admin/reset', { method: 'POST' });
+  const K = '110671307001', q = `/policies/${K}/endorsements/1`;
+  ok((await post('POST', `/policies/${K}/endorsements`, { user: 'dvisser', types: ['Change Advisor Details'] })).error?.code === 71037, 'Checker cannot start an endorsement (71037)');
+  await post('POST', `/policies/${K}/endorsements`, { user: 'nzwane', types: ['Change Advisor Details'] });
+  const asChecker = [['fee', 'PUT', q + '/fee', { vatInclusive: '0' }], ['acceptance', 'PUT', q + '/acceptance', { accepted: 'Yes', date: '04/08/2026' }],
+    ['Create or Refresh Layer', 'POST', q + '/actions/create-layer', {}], ['submission Save', 'PUT', q + '/submission', { reinsuranceVerified: 'Yes' }],
+    ['Submit', 'POST', q + '/submit', {}], ['Reject before submission', 'POST', q + '/reject', {}]];
+  for (const [what, m, u, body] of asChecker) ok((await post(m, u, { user: 'dvisser', ...body })).error?.code === 71037, `Checker cannot ${what} on the Maker's draft (71037)`);
+  const v2 = await (await browser.createBrowserContext()).newPage(); await v2.setViewport({ width: 1300, height: 800 });
+  await login(v2, 'dvisser');
+  await v2.goto(`${B}/policy/${K}?ctx=policy`);
+  ok(await v2.$eval('#btn-endorse-alter', b => b.disabled), 'Checker sees Endorse/Alter greyed');
+  await step(v2, '#nav-endorsement-quotes'); await step(v2, '#endr-serial-1');
+  ok((await v2.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id))).join() === 'btn-eac,btn-follow-up-report', 'on a draft, the Checker\'s summary bar has only EAC and Follow up report enabled');
+  await step(v2, '#nav-endr-quote-submission');
+  const subBtns = await v2.$$eval('#bar-submission-actions button', bs => bs.map(b => b.id + (b.disabled ? ':off' : ':on')));
+  ok(subBtns.join() === 'btn-save:off,btn-reject:off,btn-activate:off' && !!(await v2.$('#checker-not-submitted')), `on a draft, the Checker's Endr Quote Submission shows Save, Reject, Activate greyed with a "not submitted yet" note (${subBtns.join()})`);
+  ok(await v2.$$eval('#bar-submission-actions ~ * select, form select', ss => ss.every(x => x.disabled)), 'and the Checker cannot edit the fields');
+  await step(v2, '#nav-basic-details');
+  ok(await v2.$eval('#btn-save', b => b.disabled), 'Checker sees Basic Details Save greyed');
+  await v2.close();
+
   await restoreLatency();
   await browser.close();
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');

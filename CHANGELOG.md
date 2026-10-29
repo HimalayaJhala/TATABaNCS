@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: the Checker only verifies
+
+- **Server rule 71037:** the Checker (PREM-ADM) can no longer do any Maker step, whether through the screens or by calling the server directly. That covers Endorse/Alter, Basic Details, Acceptance, the Endr Quote Summary steps, saving or submitting Endr Quote Submission, Requestor Advisor Info and Advisor Change. The Checker can also only reject a quote that has been submitted. This is the counterpart of 71035, where the Maker can't activate their own quote.
+- **Screens:** the Checker sees those buttons greyed, with the tooltip "Maker step". On a quote that hasn't been submitted, Endr Quote Submission shows Save, Reject and Activate greyed, read-only fields, and the note "This quote has not been submitted for verification yet (Sub Status: …)".
+- **Tests:** added to `npm test`.
+
 ## 2026-10-29: Endr Quote Summary button rows as in the recording
 
 - The endorsement step buttons are smaller: 10.5px text and tighter padding. The whole step row, Endorsement Detail included, now fits on one line, with Back / Continue / Premium Projection right-aligned on the line below, as in the recording. This holds while loading and when not loading.

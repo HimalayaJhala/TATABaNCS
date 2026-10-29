@@ -37,8 +37,8 @@
 </div>
 </details>
 <div class="btnbar button-bar" id="bar-requestor-advisor-rows" data-block="button-bar" style="margin-top:8px">
-  <button class="btn" type="submit" name="op" value="add" id="btn-add"<%= imedOpen ? '' : ' disabled title="Use Endorse/Alter > Change Primary IMED first"' %>>Add</button>
-  <button class="btn" type="submit" name="op" value="delete" id="btn-delete"<%= imedOpen ? '' : ' disabled' %>>Delete</button>
+  <button class="btn" type="submit" name="op" value="add" id="btn-add"<%= imedOpen && !checker ? '' : ' disabled title="Use Endorse/Alter > Change Primary IMED first"' %>>Add</button>
+  <button class="btn" type="submit" name="op" value="delete" id="btn-delete"<%= imedOpen && !checker ? '' : ' disabled' %>>Delete</button>
 </div>
 <div class="btnbar button-bar" id="bar-requestor-advisor-actions" data-block="button-bar">
   <a class="btn" id="btn-back" href="/policy/<%= id %>">Back</a>
@@ -66,7 +66,7 @@
           </div>
         </div></details>
         <div class="btnbar button-bar" id="bar-adviser-add-actions" data-block="button-bar" style="margin-top:14px">
-          <button class="btn" type="submit" name="op" value="save" id="btn-adviser-save">Save</button>
+          <button class="btn" type="submit" name="op" value="save" id="btn-adviser-save"<%- makerOnly %>>Save</button>
           <a class="btn" id="btn-adviser-close" href="/policy/<%= id %>/requestor-advisor-info">Close</a>
         </div>
       </form>

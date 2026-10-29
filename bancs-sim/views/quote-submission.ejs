@@ -1,7 +1,7 @@
 <%- include('partials/top') %>
 <% var p = policy, e = endorsement, f = form;
    // Fillable while the quote is open (draft, or finalised and waiting for Submit); locked once submitted.
-   var editable = e.status === 'DRAFT ENDORSEMENT QUOTE' || e.stage === 'finalised';
+   var editable = (e.status === 'DRAFT ENDORSEMENT QUOTE' || e.stage === 'finalised') && !checker;   // the Checker never fills it in
    // Each dropdown is a field block: label + control inside one parent div.
    var S = function (name, id, label, opts, locked, mandatory) {
      return F.field({ id: id, label: label, mandatory: mandatory, control: F.select({ id: id, name: locked ? undefined : name, options: opts, selected: f[name], disabled: !editable || locked }) });
@@ -34,8 +34,15 @@
     </div>
   </div>
 </details>
+<% if (checker && e.stage !== 'submitted' && !['approved', 'rejected'].includes(e.stage)) { %>
+<div class="msg msg-info" id="checker-not-submitted" role="status"><span class="msg-icon">&#8505;</span><span>This quote has not been submitted for verification yet (Sub Status: <%= e.subStatus || e.status %>). Save, Reject and Activate become available to the Checker once the Maker submits it.</span></div>
+<% } %>
 <div class="btnbar button-bar" id="bar-submission-actions" data-block="button-bar" style="margin-top:8px">
-<% if (e.status === 'DRAFT ENDORSEMENT QUOTE') { %>
+<% if (checker && e.stage !== 'submitted' && !['approved', 'rejected'].includes(e.stage)) { %>
+  <button class="btn" type="button" id="btn-save" disabled title="Maker step: the Checker verifies the submitted quote">Save</button>
+  <button class="btn" type="button" id="btn-reject" disabled title="Not submitted yet">Reject</button>
+  <button class="btn" type="button" id="btn-activate" disabled title="Not submitted yet">Activate</button>
+<% } else if (e.status === 'DRAFT ENDORSEMENT QUOTE') { %>
   <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
   <button class="btn" type="button" id="btn-submit" disabled title="Finalise Endorsement first">Submit</button>
 <% } else if (e.stage === 'finalised') { %>
