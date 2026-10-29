@@ -14,7 +14,7 @@ npm run demo               # data-service + mail + BaNCS (npm run dev is the sam
 | --- | --- | --- |
 | Work list | `worklist/Split Fee Cases and Annuities Jul 2026.xlsx` | The team's Excel case list (S&I sheet) |
 | `mail-sim` | http://localhost:4001/mail (Maker `?user=nzwane`, Checker `?user=dvisser`) | The Maker's and Checker's mailboxes |
-| `bancs-sim` | http://online.bancs.omapps.net:4002/IIMS/ (or http://localhost:4002/login) | BaNCS IIMS open book. One login for both personas; the Checker lands on `/checker/home` and gets no latency or browser hang |
+| `bancs-sim` | http://online.bancs.omapps.net:4002/IIMS/ (or http://localhost:4002/login) | BaNCS IIMS open book. One login for both personas; the Checker lands on `/checker/home` and gets no latency or induced client latency |
 | `bancs-sim` (closed book) | http://localhost:4003/login, password `Closed@2026` | BaNCS IIMS closed book (`online.bancscb.omapps.net`) |
 | Transition list | `worklist/Relationship Transition List Aug 2026-synthetic.xlsx` (and `.pdf`) | The PUF and CUF list: policies to move from one adviser to another |
 | `data-service` | http://localhost:4000 | The BaNCS database. Single source of truth, no screens |
@@ -26,7 +26,7 @@ Logins (any password is accepted):
 | Nandi Zwane | SYS-ADMIN | **Maker** (capturer). Makes the fee zero. Seek drives this one |
 | Daniel Visser | PREM-ADM | **Checker** (verifier). Verifies and activates ("must be completed by another person"). Lands on `/checker/home` after login |
 
-The user list on the login page names them that way: "Nandi Zwane — Maker (SYS-ADMIN)" and "Daniel Visser — Checker (PREM-ADM)". Both use the same address and login page. After login the Maker lands on `/home` and the Checker on `/checker/home` (Home and the logo take each to their own); every other page has the same URL for both. Use a second browser profile to be logged in as both at once. The latency table and browser hang apply only to the Maker: the Checker's steps (search, Activate, and the rest) run at once. In the closed book the same user activates, so its latency still applies there.
+The user list on the login page names them that way: "Nandi Zwane — Maker (SYS-ADMIN)" and "Daniel Visser — Checker (PREM-ADM)". Both use the same address and login page. After login the Maker lands on `/home` and the Checker on `/checker/home` (Home and the logo take each to their own); every other page has the same URL for both. Use a second browser profile to be logged in as both at once. The latency table and induced client latency apply only to the Maker: the Checker's steps (search, Activate, and the rest) run at once. In the closed book the same user activates, so its latency still applies there.
 
 ## The email flow
 
@@ -39,11 +39,11 @@ The case starts in an email, not in BaNCS. Open the mailbox at http://localhost:
 
 The email data is read live, so it always agrees with BaNCS and the sheet. The hand-off emails (steps 3 and 4) are this build's addition to the SOP, to carry the work between the two people; remove them in `data-service/mail.js` if you do not want them. The mail pages carry the same Whatfix script and bank favicon.
 
-## Loading and browser hang
+## Loading and induced client latency
 
 **Loading state.** On a slow step the page behaves as in the recording. All the collapsible sections drop away, leaving the header band, a dotted-ring loader ("loading") at the far left under it, and the button row, which shows in the enabled blue with the last button blank. The left menu and breadcrumb stay, the cursor is the wait cursor, and the buttons can't be clicked. When the step finishes the full page comes back. The ring is built in CSS (12 grey dots stepping round), not an image.
 
-**Browser hang (developer menu, one Yes/No per step, default No).** The latency table has a Browser hang column next to Normal and Stress, so every step (search, Endorse/Alter, the two Saves, the five quote-build steps, Submit, Activate) has its own switch. A step set to Yes freezes the page for its own **Hang time (s)**, which replaces that step's Normal/Stress wait (and applies even when the profile is Off). The page holds the request back, shows the loading state, runs a busy loop for that time with nothing else in flight (the same as freezing the thread from the console), and only then sends the request, so the server adds no wait of its own for that step: the page blocks its own main thread with a plain busy loop. Chrome itself then shows its native **Page Unresponsive** dialog with *Wait* and *Exit page*; nothing in the page draws it, as in your recording. Like in the recording, Chrome shows it about 15 seconds into the freeze and only once you click or type in the page, so it appears on the longer waits (Create or Refresh Layer is 30 s Normal, 90 s Stress). The freeze needs latency to be on; with the profile Off nothing hangs. Search and the other steps never freeze. Every frozen step still completes by itself, so there is nothing to retry; Seek must cope with the dialog.
+**Induced client latency (developer tools, one Yes/No per step, default No).** The latency table has a Client latency column next to Normal and Stress, so every step (search, Endorse/Alter, the two Saves, the five quote-build steps, Submit, Activate) has its own switch. A step set to Yes freezes the page for its own **Hang time (s)**, which replaces that step's Normal/Stress wait (and applies even when the profile is Off). The page holds the request back, shows the loading state, runs a busy loop for that time with nothing else in flight (the same as freezing the thread from the console), and only then sends the request, so the server adds no wait of its own for that step: the page blocks its own main thread with a plain busy loop. Chrome itself then shows its native **Page Unresponsive** dialog with *Wait* and *Exit page*; nothing in the page draws it, as in your recording. Like in the recording, Chrome shows it about 15 seconds into the freeze and only once you click or type in the page, so it appears on the longer waits (Create or Refresh Layer is 30 s Normal, 90 s Stress). The freeze needs latency to be on; with the profile Off nothing hangs. Search and the other steps never freeze. Every frozen step still completes by itself, so there is nothing to retry; Seek must cope with the dialog.
 
 I proved the freeze by measuring from inside the page (its main thread was blocked for 3,023 ms on a 3 s step and 52 ms with the switch off). I could not capture Chrome's own dialog here (no display access in the build environment), so please look at it once in your Chrome with Create or Refresh Layer at its default 30 s.
 
@@ -94,11 +94,11 @@ It is checked two ways. `npm run test:sheet` runs against the live app: every fe
 
 ## Demo controls
 
-**The developer menu.** The login page is clean: just the login form and a small **bug icon** at the top right (where the logout icon sits once you are logged in; if you visit the login page while logged in, the bug sits beside it). Click the bug to open the developer menu, which holds **Reset data**, **Dummy data** (download the synthetic work list and the Relationship Transition List as Excel or PDF), the **latency profile**, the **Browser hang** switch and the **latency table**. Click it again, press Esc, or click anywhere outside to close it. It exists on the login page only; no other screen has it. In your flows its button is `#btn-dev-menu`, the menu is `#demo-controls` and it stays hidden until the button is used.
+**The developer tools.** The login page is clean: just the login form and a small **bug icon** at the top right (where the logout icon sits once you are logged in; if you visit the login page while logged in, the bug sits beside it). Click the bug to open the developer tools, which holds **Reset data**, **Dummy data** (download the synthetic work list and the Relationship Transition List as Excel or PDF), the **latency profile**, the **induced client latency** switch and the **latency table**. Click it again, press Esc, or click anywhere outside to close it. It exists on the login page only; no other screen has it. In your flows its button is `#btn-dev-menu`, the menu is `#demo-controls` and it stays hidden until the button is used.
 
 
-- **Reset data** — the **Reset data** button in the developer menu (the bug icon on the login page; it asks you to confirm). The demo saves every change you make, so use it to start again. It puts the BaNCS data back to the start and keeps the latency table. **Ctrl+Alt+R** on any BaNCS page does the same, and `npm run reset` also rebuilds the Excel work list. The seed file itself is never written to.
-- **Latency** — a per-step table in the same developer menu, closed until you open it, and nowhere else. See "Latency" below.
+- **Reset data** — the **Reset data** button in the developer tools (the bug icon on the login page; it asks you to confirm). The demo saves every change you make, so use it to start again. It puts the BaNCS data back to the start and keeps the latency table. **Ctrl+Alt+R** on any BaNCS page does the same, and `npm run reset` also rebuilds the Excel work list. The seed file itself is never written to.
+- **Latency** — a per-step table in the same developer tools, closed until you open it, and nowhere else. See "Latency" below.
 - **Whatfix** — the embed script is in the head of every BaNCS page (login, home, search, every policy screen and dialog), so your DAP flows run on the site. It lives in [bancs-sim/views/partials/whatfix.ejs](bancs-sim/views/partials/whatfix.ejs); delete the `include('whatfix')` line in `partials/top.ejs` to turn it off. Because Chrome waits for async scripts before it fires the page-load event, the automated tests block the `whatfix.com` hosts (including `cdn.whatfix.com`) so their timings stay exact.
 - **State** — the live data is kept in `data-service/data/state.json`, so a restart mid-demo resumes where it left off.
 - **Logins survive a restart** — sessions are saved to `bancs-sim/data/sessions.json` and last 12 hours, so restarting the demo does not log anyone out. If the data is reset while someone is mid-flow, they stay logged in and simply lose the open endorsement. To force everyone out, delete that file or use the power icon.
@@ -152,7 +152,7 @@ Use `119900001001` as in the screenshots (THELMA RIKHOTSO at 100%, new adviser S
 
 The waits in the recording cluster on the quote build, which is where the team's existing bot gives up. The demo reproduces them step by step, so Seek has to wait each one out rather than retry.
 
-**Where it is set.** In the developer menu on the login page (the bug icon at the top right), before anyone logs in: choose the **Active profile** (*Off*, *Normal* or *Stress*), edit any figure in the table, then **Apply**. **Restore table defaults** brings the recording's figures back. The settings are kept across restarts and are not touched by a data reset; log out to reach the page again.
+**Where it is set.** In the developer tools on the login page (the bug icon at the top right), before anyone logs in: choose the **Active profile** (*Off*, *Normal* or *Stress*), edit any figure in the table, then **Apply**. **Restore table defaults** brings the recording's figures back. The settings are kept across restarts and are not touched by a data reset; log out to reach the page again.
 
 **Where it happens.** On the server. The delay runs in `data-service`, inside the very request the browser is waiting on, and only after the step's own checks pass, so a rejected action (an error, 56000, a failed validation) comes back at once. The front end only shows a loader while it waits; it cannot skip, shorten or retry the wait, and every wait ends in success on its own.
 
@@ -168,7 +168,7 @@ The waits in the recording cluster on the quote build, which is where the team's
 | Lock EBQ | Over a minute | 20 s | 60 s |
 | Finalise Endorsement | Noticeable | 15 s | 45 s |
 | Endr Quote Submission → Submit | Around half a minute | 20 s | 60 s |
-| Activate, verifier side | Around half a minute | 20 s | 60 s |
+| Activate (closed book) | Around half a minute | 20 s | 60 s |
 
 Save on the Acceptance screen and the other saves not in this table have no wait. A full run spends about two and a half minutes waiting on Normal, and almost eight on Stress.
 
@@ -391,7 +391,7 @@ These follow the SOP screenshots and the recording, because Seek ultimately has 
 - **No real logic behind** Cancel Policy, Premium Transaction, EAC, Premium Projection, Cool Off, Start Sub Endorsement, Reject Sub Alteration, Endorsement Detail and Follow-up Report. They show an info message.
 - **Reference images:** frames from the recording are in [reference/](reference/), and the SOP screenshots are in [reference/sop/](reference/sop/), numbered in SOP order. Both show real client names and ID numbers, so keep them internal.
 
-## Developer menu: dummy data
+## Developer tools: dummy data
 
 **Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1, 3 and 4 (119900001001, 110671307001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Status and Summary are blank for the run to fill in.
 
@@ -447,7 +447,7 @@ The edge case from about 38 min of the 4 August 2026 recording: the team receive
 
 **Endorse/Alter on a policy that is not ACTIVE** (lapsed) gives `56020`. This is how the build carries the team's rule "can't move because of the lapsed status".
 
-**The list** (`npm run transition` writes it from the seed; also under *Developer menu → Relationship Transition List*) uses the template's columns: IMED_CODE_FROM, IMED_CODE_FROM NAME, IMED_CODE_TO, IMED_CODE_TO NAME, POLICY NUMBERS, CLIENT INITIALS, CLIENT SURNAME. It adds **NEW ADVISOR PARTY CODE**, so no Intermediary Enquiry is needed, as suggested in the recording. It also adds blank **STATUS** (Moved / Lapsed / IMED mismatch / Diarised / Not found) and **COMMENTS** columns to write back to. A second tab, *Expected (test key)*, gives each row's book, benefits and outcome:
+**The list** (`npm run transition` writes it from the seed; also under *Developer tools → Relationship Transition List*) uses the template's columns: IMED_CODE_FROM, IMED_CODE_FROM NAME, IMED_CODE_TO, IMED_CODE_TO NAME, POLICY NUMBERS, CLIENT INITIALS, CLIENT SURNAME. It adds **NEW ADVISOR PARTY CODE**, so no Intermediary Enquiry is needed, as suggested in the recording. It also adds blank **STATUS** (Moved / Lapsed / IMED mismatch / Diarised / Not found) and **COMMENTS** columns to write back to. A second tab, *Expected (test key)*, gives each row's book, benefits and outcome:
 
 | Policy number | Book | What should happen |
 | --- | --- | --- |

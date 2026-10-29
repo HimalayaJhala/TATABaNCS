@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: developer tools panel cleanup
+
+- Renamed "Developer menu" to "Developer tools" and restyled it as a neutral panel, replacing the yellow note look. It has three groups: Reset data, Test data and Induced artificial latency.
+- "Browser hang" is now "induced client latency", and the per-step column is "Client latency". The Normal and Stress waits are labelled "server latency".
+- Shorter notes, and the Activate row is labelled "Activate (closed book)", since the Checker never waits.
+- Element ids are unchanged, so tests and DAP selectors still work.
+
 ## 2026-10-29: Basic Details collapses while saving
 
 - While Save is loading, Basic Details hides its sections so Save and Continue sit directly under the loader, the same as Endr Quote Summary.

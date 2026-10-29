@@ -138,7 +138,7 @@ async function config() {
 
 async function render(req, res, view, locals = {}) {
   const f = takeFlash(req);
-  // Steps the browser should freeze on (the developer menu's "Browser hang" switch); empty when it is off, and
+  // Steps the browser should freeze on (induced client latency in the developer tools); empty when it is off, and
   // always empty for the Checker.
   const hangMs = isChecker(req) ? {} : ((await api('GET', '/settings')).data || {}).hangMs || {};
   res.render(view, {
@@ -274,7 +274,7 @@ app.post('/login/latency', async (req, res) => {
     : { profile: req.body.profile, hang: req.body.hang, hangSeconds: req.body.hangSeconds, normal: req.body.normal, stress: req.body.stress };
   const r = await api('PUT', '/settings/latency', body);
   if (r.error) flash(req, 'error', fmtError(r.error));
-  else flash(req, 'info', req.body.op === 'defaults' ? 'Latency table restored to its defaults.' : `Saved. Latency profile: ${r.data.profile}. Browser hang on ${Object.values(r.data.hang).filter(Boolean).length} of ${r.data.steps.length} steps.`);
+  else flash(req, 'info', req.body.op === 'defaults' ? 'Latency settings restored to their defaults.' : `Latency settings saved. Profile ${r.data.profile.charAt(0).toUpperCase() + r.data.profile.slice(1)}; induced client latency on ${Object.values(r.data.hang).filter(Boolean).length} of ${r.data.steps.length} steps.`);
   res.redirect('/login');
 });
 

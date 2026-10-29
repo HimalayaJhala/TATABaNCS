@@ -21,7 +21,7 @@ const STEPS = [
   { key: 'lockEbq', label: 'Lock EBQ', observed: 'Over a minute', normal: 20, stress: 60, hangs: true },
   { key: 'finalise', label: 'Finalise Endorsement', observed: 'Noticeable', normal: 15, stress: 45, hangs: true },
   { key: 'submit', label: 'Endr Quote Submission → Submit', observed: 'Around half a minute', normal: 20, stress: 60 },
-  { key: 'activate', label: 'Activate, verifier side', observed: 'Around half a minute', normal: 20, stress: 60 }
+  { key: 'activate', label: 'Activate (closed book)', observed: 'Around half a minute', normal: 20, stress: 60 }
 ];
 // Chrome shows its "Page Unresponsive" dialog once a page has ignored input for about 15 seconds, so a freeze has to
 // outlast that to be sure of it. 20 s is that with a margin; shorter times can still be typed in (the tests do).
@@ -100,7 +100,7 @@ module.exports = {
         const n = Number(String(raw).trim());
         if (String(raw).trim() === '' || !Number.isFinite(n) || n < 0 || n > MAX_SECONDS) {
           const label = STEPS.find(s => s.key === key).label;
-          return `${label} (${which === 'hangSeconds' ? 'browser hang' : which}): enter a number of seconds between 0 and ${MAX_SECONDS}.`;
+          return `${label} (${which === 'hangSeconds' ? 'client latency' : which}): enter a number of seconds between 0 and ${MAX_SECONDS}.`;
         }
         next[which][key] = Math.round(n * 10) / 10;
       }

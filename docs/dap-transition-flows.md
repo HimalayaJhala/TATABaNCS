@@ -7,8 +7,8 @@ These are the flows for moving a policy from one adviser to another, as shown fr
 
 The agent (Seek) follows them as instructions. The test cases come from the rows of the synthetic list.
 
-- **Test data:** `worklist/Relationship Transition List Aug 2026-synthetic.xlsx`, also under *Developer menu → Relationship Transition List → Download Excel*. Upload it to Google Sheets as-is. Tab `pufs and cufs` is the input; tab `Expected (test key)` is the answer key.
-- **Before each test run:** *Developer menu → Reset data*, so every case is back to its start state.
+- **Test data:** `worklist/Relationship Transition List Aug 2026-synthetic.xlsx`, also under *Developer tools → Relationship Transition List → Download Excel*. Upload it to Google Sheets as-is. Tab `pufs and cufs` is the input; tab `Expected (test key)` is the answer key.
+- **Before each test run:** *Developer tools → Reset data*, so every case is back to its start state.
 
 ## 1. The two BaNCS
 
@@ -16,7 +16,7 @@ The agent (Seek) follows them as instructions. The test cases come from the rows
 | --- | --- | --- |
 | URL | `http://online.bancs.omapps.net:4002/IIMS/` (or `localhost:4002`) | `http://online.bancscb.omapps.net:4003/IIMS/` (or `localhost:4003`) |
 | Login | `nzwane` (Maker), `dvisser` (Checker) from the same user list; any password. The Checker lands on `/checker/home` | `nzwane`; password **`Closed@2026`** |
-| Latency and browser hang | Maker only. The Checker's steps run at once | Apply (the Maker activates) |
+| Latency and induced client latency | Maker only. The Checker's steps run at once | Apply (the Maker activates) |
 | System Name (header) | `BaNCS_V11.0.3.4.72_071.ear` | `BaNCS_V11.0.3.3.16_019.ear` |
 | Search title | Quote/Contract Search | Quote/Contract/Voucher Search |
 | Contract numbers | `102790001001` (12 digits) | `13394001/LSD/1`: one per benefit |
