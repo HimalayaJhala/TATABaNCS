@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: Google Sheets option in developer tools
+
+- Each test data set now has a Google Sheets button next to Excel and PDF. It opens a new Google Sheet and copies `=IMPORTDATA("https://om-bancs.onrender.com/login/dummy-data/csv", ",", "en_GB")` (or `transition-csv`). Pasted into A1, the formula loads the data from the hosted site.
+- New CSV endpoints: `/login/dummy-data/csv` and `/login/dummy-data/transition-csv`, built from the first tab of each workbook.
+
 ## 2026-10-29: forms checked against the SOP
 
 - Compared every Maker form with the SOP screenshots and the recording. Endorsement Initiation, Basic Details, Acceptance and Endr Quote Submission already open with the values shown there, so no defaults changed.

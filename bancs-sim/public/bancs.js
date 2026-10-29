@@ -168,6 +168,18 @@
     window.addEventListener('pageshow', function () { set(false); });
   })();
 
+  // Developer tools, Google Sheets: copy an IMPORTDATA formula for the work list's CSV, then let the link open a new
+  // sheet. Pasting the formula into A1 loads the data (dates read as dd/mm/yyyy).
+  Array.prototype.forEach.call(document.querySelectorAll('[data-gsheet]'), function (a) {
+    a.addEventListener('click', function () {
+      var formula = '=IMPORTDATA("' + a.getAttribute('data-gsheet') + '", ",", "en_GB")';
+      var status = document.getElementById('gsheet-status');
+      var done = function () { if (status) status.textContent = 'Formula copied. In the new Google Sheet, click cell A1 and paste (Ctrl+V / Cmd+V).'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(formula).then(done, function () { window.prompt('Copy this formula into cell A1 of the new sheet:', formula); });
+      else window.prompt('Copy this formula into cell A1 of the new sheet:', formula);
+    });
+  });
+
   // Demo control: Ctrl+Alt+R restores the dataset.
   document.addEventListener('keydown', function (ev) {
     if (ev.ctrlKey && ev.altKey && (ev.key === 'r' || ev.key === 'R' || ev.code === 'KeyR')) {

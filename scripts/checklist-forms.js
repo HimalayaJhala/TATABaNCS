@@ -286,6 +286,19 @@ async function search(p, fields) {
     const res = await fetch(href);
     ok(res.status === 200 && (res.headers.get('content-type') || '').includes(type) && (res.headers.get('content-disposition') || '').includes('synthetic') && (await res.arrayBuffer()).byteLength > 5000, `the developer menu downloads the dummy data as ${kind}`);
   }
+  for (const [kind, head] of [['csv', 'Assigned,Approver,ContractNumber'], ['transition-csv', 'RELATIONSHIP TRANSITION LIST']]) {
+    const csv = await (await fetch(`${B}/login/dummy-data/${kind}`)).text();
+    ok(csv.startsWith(head) && csv.includes(kind === 'csv' ? '119900001001' : 'IMED_CODE_FROM'), `the ${kind} endpoint serves the first tab as CSV for Google Sheets`);
+  }
+  await browser.defaultBrowserContext().overridePermissions(B, ['clipboard-read', 'clipboard-write', 'clipboard-sanitized-write']);
+  await p.evaluate(() => { const w = navigator.clipboard.writeText.bind(navigator.clipboard); navigator.clipboard.writeText = t => { window.__copied = t; return w(t).catch(() => {}); }; });
+  const tabOpened = new Promise(r => browser.once('targetcreated', t => r(t.url())));
+  await p.click('#link-dummy-data-gsheet');
+  await p.bringToFront(); await new Promise(r => setTimeout(r, 300));
+  const formula = await p.evaluate(() => window.__copied);
+  ok(formula === '=IMPORTDATA("https://om-bancs.onrender.com/login/dummy-data/csv", ",", "en_GB")', `Google Sheets copies the import formula: ${formula}`);
+  ok(/sheets\.new|docs\.google\.com|about:blank/.test(await Promise.race([tabOpened, new Promise(r => setTimeout(() => r('none'), 3000))])), 'Google Sheets opens a new sheet in a new tab');
+  ok(((await text(p, '#gsheet-status')) || '').startsWith('Formula copied'), 'the panel says where to paste it');
   await fetch(DATA + '/admin/reset', { method: 'POST' });
   const mb = await browser.newPage();
   await mb.goto(`${MAIL}/mail?user=nzwane`);

@@ -12,14 +12,15 @@
     <h3 class="demo-h">Test data <span class="demo-tag">synthetic, no client PII</span></h3>
     <div class="demo-row" id="bar-dummy-data" data-block="button-bar">
       <span class="demo-label" id="dummy-data-label">Split Fee Cases and Annuities, Aug 2026</span>
-      <span class="demo-actions"><a class="btn" id="link-dummy-data-xlsx" href="/login/dummy-data/xlsx" download>Excel</a><a class="btn" id="link-dummy-data-pdf" href="/login/dummy-data/pdf" download>PDF</a></span>
+      <span class="demo-actions"><a class="btn" id="link-dummy-data-xlsx" href="/login/dummy-data/xlsx" download>Excel</a><a class="btn" id="link-dummy-data-pdf" href="/login/dummy-data/pdf" download>PDF</a><a class="btn" id="link-dummy-data-gsheet" href="https://sheets.new" target="_blank" rel="noopener" data-gsheet="<%= publicUrl %>/login/dummy-data/csv">Google Sheets</a></span>
       <span class="demo-note" id="dummy-data-note">4 contracts. Rows 1, 3 and 4 switch the fee to 0 (row 4 opens with Legal Verification blank); row 2 is lapsed (56020).</span>
     </div>
     <div class="demo-row" id="bar-transition-list" data-block="button-bar">
       <span class="demo-label" id="transition-list-label">Relationship Transition List, Aug 2026</span>
-      <span class="demo-actions"><a class="btn" id="link-transition-xlsx" href="/login/dummy-data/transition-xlsx" download>Excel</a><a class="btn" id="link-transition-pdf" href="/login/dummy-data/transition-pdf" download>PDF</a></span>
+      <span class="demo-actions"><a class="btn" id="link-transition-xlsx" href="/login/dummy-data/transition-xlsx" download>Excel</a><a class="btn" id="link-transition-pdf" href="/login/dummy-data/transition-pdf" download>PDF</a><a class="btn" id="link-transition-gsheet" href="https://sheets.new" target="_blank" rel="noopener" data-gsheet="<%= publicUrl %>/login/dummy-data/transition-csv">Google Sheets</a></span>
       <span class="demo-note" id="transition-list-note">8 policies moving from adviser 610901 to 620455: open and closed book, lapsed, IMED mismatch, two benefits, 56000 and not found.</span>
     </div>
+    <p class="demo-note" id="gsheet-status" role="status">Google Sheets opens a new sheet and copies a formula: paste it into cell A1 and the data loads from the hosted site.</p>
   </section>
 
   <form method="post" action="/login/latency" id="form-latency" class="demo-section">

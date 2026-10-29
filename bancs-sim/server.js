@@ -13,6 +13,8 @@ const PORT = Number(process.env.BANCS_PORT || 4002);
 const DATA = process.env.DATA_URL || 'http://localhost:4000';
 const MAIL = process.env.MAIL_URL || 'http://localhost:4001';
 const BOOK = process.env.BANCS_BOOK === 'closed' ? 'closed' : 'open';
+// Google Sheets can only import from a public address, so the Google Sheets option always reads the hosted site.
+const PUBLIC_URL = process.env.PUBLIC_URL || 'https://om-bancs.onrender.com';
 const CLOSED = BOOK === 'closed';
 // Where a persona lands after login: the Checker's home has its own endpoint in the open book. The closed book has
 // no Checker (the same user activates).
@@ -154,7 +156,7 @@ async function render(req, res, view, locals = {}) {
     breadcrumb: null,
     hangMs,
     mailUrl: MAIL,
-    book: BOOK,
+    book: BOOK, publicUrl: PUBLIC_URL,
     ...locals
   });
 }
@@ -285,6 +287,22 @@ const DUMMY_DATA = {
   'transition-xlsx': 'Relationship Transition List Aug 2026-synthetic.xlsx',
   'transition-pdf': 'Relationship Transition List Aug 2026-synthetic.pdf'
 };
+// The first tab of a work list as CSV, for the developer tools' Google Sheets option (IMPORTDATA reads it).
+const DUMMY_CSV = { csv: DUMMY_DATA.xlsx, 'transition-csv': DUMMY_DATA['transition-xlsx'] };
+app.get('/login/dummy-data/:kind(csv|transition-csv)', async (req, res) => {
+  const ExcelJS = require('exceljs');
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(path.join(__dirname, '..', 'worklist', DUMMY_CSV[req.params.kind]));
+  const ws = wb.worksheets[0];
+  const cell = v => { const s = v === null || v === undefined ? '' : String(v && v.richText ? v.richText.map(t => t.text).join('') : v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const lines = [];
+  ws.eachRow({ includeEmpty: true }, row => {
+    const vals = [];
+    for (let c = 1; c <= ws.columnCount; c++) { const x = row.getCell(c); vals.push(x.isMerged && x.master !== x ? '' : cell(x.value)); }   // a merged title once
+    lines.push(vals.join(','));
+  });
+  res.type('text/csv').send(lines.join('\n') + '\n');
+});
 app.get('/login/dummy-data/:kind', (req, res) => {
   const name = DUMMY_DATA[req.params.kind];
   if (!name) return res.status(404).end();
