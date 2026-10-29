@@ -67,8 +67,8 @@ app.put('/settings/latency', wrap(req => {
   return s;
 }));
 
-// Waits out one step's configured latency, server-side. BaNCS calls this inside the request the
-// browser is waiting on (policy search, Endorse/Alter), so the front end cannot skip it.
+// Waits out one step's configured latency, server-side. BaNCS calls this alongside the step's real work, inside the
+// request the browser is waiting on, so the front end cannot skip it and the screen loads for whichever is longer.
 app.post('/latency/:key', wrap(async req => {
   if (!settings.known(req.params.key)) throw new rules.BancsError(90002, `Unknown latency step ${req.params.key}.`, 404);
   return { step: req.params.key, waitedMs: await settings.wait(req.params.key) };

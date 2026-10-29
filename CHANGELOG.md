@@ -3,6 +3,14 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: loading time and Quote Summary loading layout
+
+- **A step now loads for whichever is longer: the real response or the configured latency.** They used to be added together.
+  - For example, a 5 s response with 4 s latency loads for 5 s; a 6 s response with 10 s latency loads for 10 s.
+  - A step that fails still answers at once.
+  - The latency now runs in BaNCS alongside the call to data-service; data-service no longer adds its own wait.
+- **Endr Quote Summary while loading:** the summary sections drop away, so the action bar moves up under the loader (as Search does). Other screens keep their layout.
+
 ## 2026-10-29: Render hosting
 
 - Added `render.yaml` (one free web service, `om-bancs`) and `scripts/render-start.js`. The start script runs data-service and the open-book BaNCS on Render's port.

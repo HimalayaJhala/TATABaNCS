@@ -228,8 +228,6 @@ const toKey = d => (d || '').split('/').reverse().join('');
 const r3 = n => Math.round(n * 1000) / 1000;
 
 function cfg() { return store.get().config; }
-// The configured latency for a step. Only the Maker waits: the Checker's steps run at once.
-const pause = (u, key) => u.kind === 'verifier' ? 0 : settings.wait(key);
 
 function user(id) {
   const u = store.get().users.find(x => x.id === id);
@@ -340,7 +338,6 @@ async function createEndorsement(contractNo, body) {
     submission: null,
     log: []
   };
-  await pause(u, 'endorseSave');
   log(e, u.id, 'create');
   store.get().endorsements.push(e);
   store.save();
@@ -371,7 +368,6 @@ async function updateFee(contractNo, serial, body) {
   if (!['No', 'Yes'].includes(noDealings)) throw new BancsError(56013, 'No Dealings must be Yes or No.');
   const amend = body.amendPotReason ?? ((e.pendingBasic && e.pendingBasic.amendPotReason) || '');
   if (amend !== '' && !AMEND_POT_REASONS.includes(amend)) throw new BancsError(56014, 'Amend Pot Percentage Reason is not valid.');
-  await pause(u, 'basicSave');
   e.pendingBasic = { noDealings, amendPotReason: amend, removeReason: String(body.removeReason ?? (e.pendingBasic && e.pendingBasic.removeReason) ?? '').slice(0, 250) };
   const current = fee(contractNo);
   e.pendingFee = {
@@ -440,7 +436,6 @@ async function runAction(contractNo, serial, action, body) {
       throw new BancsError(30409, `${step.label} cannot be performed. The remaining adviser keeps ${x.share.toFixed(2)}% of the asset advice fee, so VAT Inclusive Asset Advice Fee must be ${x.expected.toFixed(3)} (${x.base.toFixed(3)} x ${x.share.toFixed(2)}%), but it is ${Number(actual).toFixed(3)}. Update it on Basic Details.`);
     }
   }
-  await pause(u, step.latency);   // server-side wait, inside the request the screen is waiting on
   e.stage = step.to;
   e.subStatus = SUB[step.to];
   if (action === 'calculate-premium') {
@@ -516,7 +511,6 @@ async function submit(contractNo, serial, body) {
     store.save();
     throw new BancsError(48120, `Endorsement quote cannot be submitted. ${problems.join('; ')}.`);
   }
-  await pause(u, 'submit');
   e.stage = 'submitted';
   e.subStatus = SUB.submitted;
   e.submittedBy = u.id;
@@ -543,7 +537,6 @@ async function activate(contractNo, serial, body) {
   if (!closed && u.role !== 'PREM-ADM') {
     throw new BancsError(71036, `Role ${u.role} is not authorised to activate endorsement quotes.`, 403);
   }
-  await pause(u, 'activate');
   e.stage = 'approved';
   e.subStatus = SUB.approved;
   e.activatedBy = u.id;

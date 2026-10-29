@@ -322,6 +322,7 @@ async function search(p, fields) {
           dots: document.querySelectorAll('#page-loader .ring i').length, below: l.top >= h.bottom - 1, farLeft: l.left < 260,
           cursor: getComputedStyle(document.body).cursor, buttons: bar.length,
           place: [...document.querySelectorAll('.btn')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return [b.id, Math.round(r.left), Math.round(r.top), b.disabled]; }),
+          barTop: Math.round(document.getElementById('endorsement-action-bar').getBoundingClientRect().top), loaderBottom: Math.round(l.bottom),
           noEmpty: [...document.querySelectorAll('#endorsement-action-bar button')].every(b => getComputedStyle(b).display === 'none' || b.textContent.trim())
         }));
       }, 250);
@@ -355,7 +356,10 @@ async function search(p, fields) {
     ok(sn.dots === 12 && sn.below && sn.farLeft, 'a 12-dot ring loader sits at the far left, directly under the header band');
     ok(sn.cursor === 'wait', 'the cursor is the wait cursor');
     ok(sn.buttons >= 6 && sn.noEmpty, `all ${sn.buttons} bar buttons keep their labels, with no empty button after Follow up report`);
-    ok(JSON.stringify(sn.place) === JSON.stringify(placeBefore), `while loading, every button stays where it was and keeps its enabled or disabled state (${placeBefore.length} buttons)`);
+    const before = Object.fromEntries(placeBefore.map(x => [x[0], x])), during = sn.place.filter(x => before[x[0]]);
+    ok(during.length === placeBefore.length && during.every(x => x[1] === before[x[0]][1] && x[3] === before[x[0]][3]), `while loading, every button keeps its order, column and enabled or disabled state (${placeBefore.length} buttons)`);
+    ok(during.filter(x => /^btn-(create|calculate|end-sub|lock|finalise)/.test(x[0])).every(x => x[2] < before[x[0]][2] - 100), 'the summary sections drop away, so the action bar moves up');
+    ok(sn.barTop >= sn.loaderBottom, `the action bar sits below the loader, not under it (bar ${sn.barTop}, loader ${sn.loaderBottom})`);
   }
   ok(pr.gap < 900, `with Browser hang off the page keeps running while it loads (longest gap between ticks ${pr.gap} ms)`);
   ok(!(await p.$eval('body', b => b.classList.contains('is-loading'))) && await shown('#sec-ebq-summary') && (await text(p, '#hdr-sub-status')) === 'Sub-Endorsement Started', 'when the step finishes the full page is back');
