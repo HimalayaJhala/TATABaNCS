@@ -1,0 +1,40 @@
+<% var f = modal.form || {}; var sel = modal.selected || []; var types = modal.types;
+   var stake = f.requesterStakeCode || 'Contract Owner';
+   var dual = '<div class="dual" id="dual-endorsement-types" data-block="dual-list">' +
+     '<select multiple id="endorsement-types-available" size="12" aria-label="Available endorsement types">' +
+       types.filter(function (t) { return sel.indexOf(t[0]) === -1; }).map(function (t) { return '<option value="' + F.esc(t[0]) + '"' + (t[1] ? ' disabled' : '') + '>' + F.esc(t[0]) + '</option>'; }).join('') +
+     '</select>' +
+     '<div class="movers"><button class="btn" type="button" id="btn-move-right">&gt;</button><button class="btn" type="button" id="btn-move-left">&lt;</button></div>' +
+     '<select multiple name="types" id="endorsement-types-selected" size="12" aria-label="Selected endorsement types">' +
+       sel.map(function (t) { return '<option value="' + F.esc(t) + '">' + F.esc(t) + '</option>'; }).join('') +
+     '</select></div>'; %>
+<div class="modal-overlay" id="endorse-modal-overlay" data-block="modal-overlay">
+  <div class="modal-dialog" id="endorse-modal" data-block="modal" role="dialog" aria-modal="true" aria-labelledby="endorse-modal-title">
+    <div class="modal-title" id="endorse-modal-header" data-block="modal-header"><span id="endorse-modal-title">Endorsement Initiation Screen</span><a class="modal-close" id="btn-modal-close" href="/policy/<%= policy.contractNo %>" title="Close">&times;</a></div>
+    <div class="modal-body" id="endorse-modal-body" data-block="modal-body">
+      <% if (modal.error) { %><div class="msg msg-error" id="modal-error-band" role="alert"><span class="msg-icon">&#10006;</span><span id="modal-error-message"><%= modal.error %></span></div><% } %>
+      <form method="post" action="/policy/<%= policy.contractNo %>/endorse" id="form-endorsement-initiation" data-busy<%- hangMs.endorseSave ? ' data-hang-ms="' + hangMs.endorseSave + '"' : '' %>>
+        <div class="popup-frame" id="frame-endorsement-initiation" data-block="form-frame">
+          <div class="fields one" id="fields-endorsement-initiation">
+            <%- F.field({ id: 'endorsement-quote-date', label: 'Endorsement Quote Date', mandatory: true, control: F.input({ id: 'endorsement-quote-date', name: 'quoteDate', value: f.quoteDate || config.systemDate, date: true }) + F.cal() }) %>
+            <%- F.field({ id: 'endorsement-types', label: 'Type of Endorsement', mandatory: true, control: dual, labelFor: 'endorsement-types-available' }) %>
+            <%- F.field({ id: 'later-effective-date', label: 'Do You Want to have a Later Effective Date?', mandatory: true, control: F.select({ id: 'later-effective-date', name: 'laterEffectiveDate', options: ['No', 'Yes'], selected: f.laterEffectiveDate }) }) %>
+            <%- F.field({ id: 'later-effective-date-value', label: 'Later Effective Date', mandatory: true, hidden: f.laterEffectiveDate !== 'Yes', cls: 'later-date-row', control: F.input({ id: 'later-effective-date-value', name: 'laterDate', value: f.laterDate || '', date: true, placeholder: 'DD/MM/YYYY' }) + F.cal() }) %>
+            <%- F.field({ id: 'endorsement-quote-instance-number', label: 'Endorsement Quote Instance Number', mandatory: true, control: F.input({ id: 'endorsement-quote-instance-number', name: 'instanceNumber', value: f.instanceNumber || '99999' }) }) %>
+            <%- F.field({ id: 'bizagi-case-id', label: 'Bizagi Case Id', mandatory: true, control: F.input({ id: 'bizagi-case-id', name: 'bizagiCaseId', value: f.bizagiCaseId || 'NA' }) }) %>
+            <%- F.field({ id: 'carma-grouping-key', label: 'CARMA Grouping Key', mandatory: true, control: F.input({ id: 'carma-grouping-key', name: 'carmaKey', value: f.carmaKey || 'NA' }) }) %>
+            <%- F.field({ id: 'requester-stake-code', label: 'Requester Stake Code', mandatory: true, control: F.select({ id: 'requester-stake-code', name: 'requesterStakeCode', cls: 'wide', options: Object.keys(modal.parties), selected: stake }) }) %>
+            <%- F.field({ id: 'requester-party', label: 'Requester Party', mandatory: true, control: F.select({ id: 'requester-party', name: 'requesterParty', cls: 'wide', options: modal.parties[stake] || modal.parties['Contract Owner'], selected: f.requesterParty, data: { 'data-parties': JSON.stringify(modal.parties) } }) }) %>
+            <%- F.field({ id: 'endorsement-quote-required', label: 'Endorsement Quote Required', mandatory: true, control: F.select({ id: 'endorsement-quote-required', name: 'quoteRequired', options: ['Yes', 'No'], selected: f.quoteRequired }) }) %>
+            <%- F.field({ id: 'enforce-occupation-change', label: 'Enforce Due to Occupation Change', mandatory: true, control: F.select({ id: 'enforce-occupation-change', name: 'occupationChange', options: ['No', 'Yes'], selected: f.occupationChange }) }) %>
+            <%- F.field({ id: 'reason-for-initiating', label: 'Reason for initiating this action', control: F.textarea({ id: 'reason-for-initiating', name: 'reason', value: f.reason || '' }) }) %>
+          </div>
+        </div>
+        <div class="btnbar button-bar" id="bar-endorse-actions" data-block="button-bar" style="margin-right:12px">
+          <button class="btn" type="submit" id="btn-save">Save</button>
+          <a class="btn" id="btn-endorse-back" href="/policy/<%= policy.contractNo %>">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

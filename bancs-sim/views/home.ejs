@@ -1,0 +1,10 @@
+<%- include('partials/top', { hideNav: true, homeBar: true }) %>
+<% var three = user.role === 'SYS-ADMIN'; %>
+<div class="tiles<%= three ? '' : ' two' %>" id="block-module-tiles" data-block="module-tiles">
+  <% if (three) { %>
+  <a class="tile" id="tile-accounting" href="/module/accounting"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="#d9531e"/><circle cx="20" cy="20" r="11.5" fill="#f08a2e"/><text x="20" y="27" text-anchor="middle" font-size="19" font-weight="bold" fill="#ffe9a0" font-family="Arial">$</text></svg><span>Accounting</span></a>
+  <% } %>
+  <a class="tile" id="tile-business-operation" href="/business-operations"><svg viewBox="0 0 40 40"><rect x="5" y="14" width="30" height="20" rx="1.5" fill="#fff" stroke="#c9503c" stroke-width="1.4"/><path d="M5 14 L20 26 L35 14" fill="none" stroke="#c9503c" stroke-width="1.4"/><rect x="14" y="5" width="12" height="10" rx="1" fill="#e8553a"/><rect x="17" y="3" width="6" height="4" fill="#e8553a"/></svg><span>Business Operation</span></a>
+  <a class="tile" id="tile-reinsurance" href="/module/reinsurance"><svg viewBox="0 0 40 40"><path d="M5 24 Q16 38 30 20" stroke="#e8761b" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M27 14 L35 20 L25 25 Z" fill="#e8761b"/><rect x="26" y="9" width="11" height="11" rx="1" fill="#b4ab9c"/><rect x="20" y="13" width="9" height="9" rx="1" fill="#cfc7b8"/></svg><span>Re-insurance</span></a>
+</div>
+<%- include('partials/bottom') %>

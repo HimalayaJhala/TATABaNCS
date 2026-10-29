@@ -1,0 +1,29 @@
+<%- include('partials/top') %>
+<% var p = policy; %>
+<details class="section" open id="sec-endorsement-quotes" data-block="section"><summary>Endorsement Quotes</summary>
+<div class="section-body" id="body-endorsement-quotes" data-block="section-body">
+  <div class="grid-block" id="grid-endorsement-quotes" data-block="grid"><table class="grid" id="endorsement-quotes">
+    <thead><tr><th style="width:24px"></th><th>Serial No</th><th>Endr Quotation Number</th><th>Type of Endorsement</th><th>Endr Effective Date</th><th>Endr Quote Status</th><th>Cooling Off Applicable</th><th>Cool off flag</th></tr></thead>
+    <tbody>
+    <% if (!endorsements.length) { %><tr><td colspan="8" class="empty">No records found.</td></tr><% } %>
+    <% endorsements.forEach(function (e) { %>
+      <tr id="endr-row-<%= e.serial %>">
+        <td><input type="checkbox" id="endr-check-<%= e.serial %>"></td>
+        <td style="text-align:center"><a class="serial" id="endr-serial-<%= e.serial %>" href="/policy/<%= p.contractNo %>/endorsement-quotes/<%= e.serial %>"><%= e.serial %></a></td>
+        <td style="text-align:center"><%= e.quotationNumber %></td>
+        <td class="endr-type"><%= e.types.join(', ') %></td>
+        <td><%= e.effectiveDate %></td>
+        <td class="endr-status"><%= e.status %></td>
+        <td><%= e.coolingOffApplicable %></td>
+        <td><%= e.coolOffFlag %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+</div>
+</details>
+<div class="btnbar button-bar" id="bar-endorsement-quotes-actions" data-block="button-bar" style="margin-top:8px">
+  <%- include('partials/actbtn', { action: '/policy/' + p.contractNo + '/action/cool-off', id: 'btn-cool-off', label: 'Cool Off' }) %>
+  <a class="btn" id="btn-back" href="/policy/<%= p.contractNo %>">Back</a>
+</div>
+<%- include('partials/bottom') %>

@@ -1,0 +1,22 @@
+<%- include('partials/top') %>
+<% var id = policy.contractNo, e = endorsement; var staged = (e.sharingDraft && Object.keys(e.sharingDraft)) || [];
+   var saved = (e.sharing && Object.keys(e.sharing)) || []; %>
+<details class="section" open id="sec-remuneration-sharing-changes" data-block="section"><summary>Remuneration and Sharing Changes</summary>
+<div class="section-body" id="body-remuneration-sharing-changes" data-block="section-body">
+  <div class="fields adv-links" id="fields-remuneration-sharing-changes">
+    <%- F.field({ id: 'edit-contribution-remuneration-sharing', label: 'Edit Contribution Remuneration Sharing', labelFor: 'btn-edit-contribution-sharing', control: '<a class="btn" id="btn-edit-contribution-sharing" href="/policy/' + id + '/sharing/contribution">Details</a>' }) %>
+    <%- F.field({ id: 'edit-asset-remuneration-sharing', label: 'Edit Asset Remuneration Sharing', labelFor: 'btn-edit-asset-sharing', control: '<a class="btn" id="btn-edit-asset-sharing" href="/policy/' + id + '/sharing/asset">Details</a>' }) %>
+    <%- F.field({ id: 'edit-contribution-remuneration-percentage', label: 'Edit Contribution Remuneration Percentage', labelFor: 'btn-edit-contribution-percentage', control: '<form method="post" action="/policy/' + id + '/advisor-change/contribution-percentage"><button class="btn" type="submit" id="btn-edit-contribution-percentage">Details</button></form>' }) %>
+    <%- F.blank() %>
+  </div>
+</div>
+</details>
+<form method="post" action="/policy/<%= id %>/advisor-change" id="form-advisor-change">
+  <div class="btnbar button-bar" id="bar-advisor-change-actions" data-block="button-bar">
+    <button class="btn" type="submit" id="btn-save">Save</button>
+    <a class="btn" id="btn-back" href="/policy/<%= id %>">Back</a>
+    <a class="btn" id="btn-continue" href="/policy/<%= id %>/basic-details">Continue</a>
+  </div>
+</form>
+<% if (typeof modal !== 'undefined' && modal) { %><%- include('partials/sharing-modal') %><% } %>
+<%- include('partials/bottom') %>

@@ -1,0 +1,55 @@
+<%- include('partials/top') %>
+<% var p = policy, e = endorsement, f = form;
+   // Fillable while the quote is open (draft, or finalised and waiting for Submit); locked once submitted.
+   var editable = e.status === 'DRAFT ENDORSEMENT QUOTE' || e.stage === 'finalised';
+   // Each dropdown is a field block: label + control inside one parent div.
+   var S = function (name, id, label, opts, locked, mandatory) {
+     return F.field({ id: id, label: label, mandatory: mandatory, control: F.select({ id: id, name: locked ? undefined : name, options: opts, selected: f[name], disabled: !editable || locked }) });
+   };
+   var D = function (name, id, label) {
+     return F.field({ id: id, label: label, control: F.input({ id: id, name: name, value: f[name] || '', date: true, readonly: !editable }) + F.cal() });
+   };
+   var R = function (id, label, value) { return F.field({ id: id, label: label, control: F.input({ id: id, value: value, readonly: true }) }); };
+%>
+<form method="post" action="/policy/<%= p.contractNo %>/quote-submission" id="form-quote-submission">
+<details class="section" open id="sec-acceptance-declaration" data-block="section"><summary>Acceptance and Declaration</summary>
+  <div class="section-body" id="body-acceptance-declaration" data-block="section-body">
+    <div class="fields" id="fields-acceptance-declaration">
+      <%- S('reinsuranceVerified', 'reinsurance-verified', 'Reinsurance Verified', ['', 'No', 'Yes']) %>
+      <%- S('allPartiesAccepted', 'all-parties-accepted', 'All Contracting Parties have accepted the application', ['', 'Yes', 'No'], true) %>
+      <%- S('sarInProgress', 'sar-in-progress', 'SAR In Progress', ['', 'No', 'Yes']) %>
+      <%- S('adminRequirementsOutstanding', 'admin-requirements-outstanding', 'Admin Requirements Outstanding', ['', 'Yes', 'No']) %>
+      <%- S('uwRequirementsOutstanding', 'underwriting-requirements-outstanding', 'Underwriting Requirements Outstanding', ['', 'Yes', 'No']) %>
+      <%- S('applicationSubStatus', 'application-sub-status', 'Application Sub Status', ['', 'Complete', 'Incomplete']) %>
+      <%- S('allAdminRequirementsReceived', 'all-admin-requirements-received', 'All admin requirements received', ['', 'Accepted', 'Pending', 'Rejected', 'Yes', 'No']) %>
+      <%- R('application-submission-date', 'Application Submission Date', f.applicationSubmissionDate) %>
+      <%- D('uwMlqCompleteDate', 'uw-mlq-complete-date', 'UW_MLQ_COMPLETE_DATE') %>
+      <%- D('uwNewReqmtDate', 'uw-new-reqmt-date', 'UW_NEW_REQMT_DATE') %>
+      <%- D('uwAllReqmtRecvdDate', 'uw-all-reqmt-recvd-date', 'UW_ALL_REQMT_RECVD_DATE') %>
+      <%- S('legalVerification', 'legal-verification', 'Legal Verification', ['', 'Approved', 'Pending', 'Rejected']) %>
+      <%- S('spousalConsentCaptured', 'spousal-consent-captured', 'Spousal Consent Captured', ['No', 'Yes']) %>
+      <%- R('basis-date', 'Basis Date', f.basisDate) %>
+      <%- R('effective-date', 'Effective Date', f.effectiveDate) %>
+      <%- F.blank() %>
+    </div>
+  </div>
+</details>
+<div class="btnbar button-bar" id="bar-submission-actions" data-block="button-bar" style="margin-top:8px">
+<% if (e.status === 'DRAFT ENDORSEMENT QUOTE') { %>
+  <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
+  <button class="btn" type="button" id="btn-submit" disabled title="Finalise Endorsement first">Submit</button>
+<% } else if (e.stage === 'finalised') { %>
+  <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
+  <button class="btn" type="submit" name="op" value="submit" id="btn-submit" data-busy<%- hangMs.submit ? ' data-hang-ms="' + hangMs.submit + '"' : '' %>>Submit</button>
+<% } else if (e.stage === 'submitted') { %>
+  <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
+  <button class="btn" type="submit" name="op" value="reject" id="btn-reject">Reject</button>
+  <button class="btn" type="submit" name="op" value="activate" id="btn-activate" data-busy<%- hangMs.activate ? ' data-hang-ms="' + hangMs.activate + '"' : '' %>>Activate</button>
+<% } else { %>
+  <button class="btn" type="submit" name="op" value="save" id="btn-save" disabled>Save</button>
+  <button class="btn" type="button" id="btn-reject" disabled>Reject</button>
+  <button class="btn" type="button" id="btn-activate" disabled title="<%= e.subStatus || e.status %>">Activate</button>
+<% } %>
+</div>
+</form>
+<%- include('partials/bottom') %>

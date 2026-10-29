@@ -1,0 +1,62 @@
+<%- include('partials/top', { hideNav: true, homeBar: true, devMenu: true }) %>
+<div class="demo-bar" id="demo-controls" data-block="demo-controls" role="dialog" aria-label="Developer menu" hidden>
+  <div class="demo-top" id="bar-demo-actions" data-block="button-bar">
+    <span class="demo-title">Developer menu</span>
+    <form method="post" action="/admin/reset" id="form-reset-data" onsubmit="return confirm('Reset all demo data to the starting point?\n\nOpen endorsements, saved fees and acceptances will be lost. The latency table is kept.');">
+      <button class="btn btn-danger" type="submit" id="btn-reset-data">Reset data</button>
+    </form>
+    <span class="demo-note" id="reset-note">The demo saves every change you make. Reset puts the data back to the start; the latency table below is kept.</span>
+  </div>
+  <div class="demo-top" id="bar-dummy-data" data-block="button-bar">
+    <span class="demo-label" id="dummy-data-label">Dummy data (synthetic, no client PII)</span>
+    <a class="btn" id="link-dummy-data-xlsx" href="/login/dummy-data/xlsx" download>Download Excel</a>
+    <a class="btn" id="link-dummy-data-pdf" href="/login/dummy-data/pdf" download>Download PDF</a>
+    <span class="demo-note" id="dummy-data-note">Split Fee Cases and Annuities, Aug 2026, S&amp;I tab: four contracts. Rows 1, 3 and 4 switch the fee off to 0; row 2 (102790002001) is lapsed and stops with 56020.</span>
+  </div>
+  <div class="demo-top" id="bar-transition-list" data-block="button-bar">
+    <span class="demo-label" id="transition-list-label">Relationship Transition List (PUF and CUF)</span>
+    <a class="btn" id="link-transition-xlsx" href="/login/dummy-data/transition-xlsx" download>Download Excel</a>
+    <a class="btn" id="link-transition-pdf" href="/login/dummy-data/transition-pdf" download>Download PDF</a>
+    <span class="demo-note" id="transition-list-note">Move policies from adviser 610901 to 620455. Covers the edge cases: open and closed book, lapsed, adviser mismatch, two benefits, 56000 (diarise) and not found.</span>
+  </div>
+  <form method="post" action="/login/latency" id="form-latency">
+    <div class="latency-top" id="bar-latency-profile" data-block="button-bar">
+      <%- F.field({ id: 'latency-profile', label: 'Latency profile', cls: 'demo-field', control: F.select({ id: 'latency-profile', name: 'profile', options: [['off', 'Off (no delay)'], ['normal', 'Normal'], ['stress', 'Stress']], selected: latency.profile }) }) %>
+      <button class="btn" type="submit" name="op" value="apply" id="btn-latency-apply">Apply</button>
+      <span class="demo-note" id="hang-note">Browser hang is set per step in the table below. Yes freezes the page for that step's own Hang time, which replaces its Normal and Stress wait (and works even when the profile is Off). Chrome only shows its Page Unresponsive dialog after about 15 s without a response, so the Hang time starts at 20 s: the shortest that is sure to trigger it. Click the page while it is frozen.</span>
+    </div>
+    <details class="latency-panel" id="latency-panel" data-block="section">
+      <summary>Calculation latency and browser hang <span class="demo-note" id="latency-current">Profile: <b><%= latency.profile === 'off' ? 'Off (no delay)' : latency.profile.charAt(0).toUpperCase() + latency.profile.slice(1) %></b> &middot; Browser hang on <b><%= latency.steps.filter(function (st) { return latency.hang[st.key]; }).length %></b> of <%= latency.steps.length %> steps</span></summary>
+      <div class="section-body" id="body-latency-panel" data-block="section-body">
+        <div class="latency-top" id="bar-latency-restore" data-block="button-bar"><button class="btn" type="submit" name="op" value="defaults" id="btn-latency-defaults" formnovalidate>Restore table defaults</button><span class="demo-note">Edit any figure, then Apply above. Each wait runs on the server inside the request, so the screen can only show its loading state and wait; there is nothing to retry.</span></div>
+        <div class="latency-table" id="latency-table" data-block="grid">
+          <div class="lat-row lat-head" id="latency-row-header"><span class="lat-step">Step</span><span class="lat-obs">Observed in the recording</span><span class="lat-num">Normal (s)</span><span class="lat-num">Stress (s)</span><span class="lat-num">Browser hang</span><span class="lat-num">Hang time (s)</span></div>
+          <% latency.steps.forEach(function (st) { %>
+          <div class="lat-row" id="latency-row-<%= st.key %>" data-block="field-row">
+            <span class="lat-step"><%= st.label %></span>
+            <span class="lat-obs"><%= st.observed %></span>
+            <%- F.field({ id: 'latency-normal-' + st.key, label: st.label + ' (Normal, seconds)', cls: 'lat-cell', control: F.input({ id: 'latency-normal-' + st.key, name: 'normal[' + st.key + ']', value: latency.normal[st.key], num: true }) }) %>
+            <%- F.field({ id: 'latency-stress-' + st.key, label: st.label + ' (Stress, seconds)', cls: 'lat-cell', control: F.input({ id: 'latency-stress-' + st.key, name: 'stress[' + st.key + ']', value: latency.stress[st.key], num: true }) }) %>
+            <%- F.field({ id: 'browser-hang-' + st.key, label: st.label + ' (Browser hang)', cls: 'lat-cell', control: F.select({ id: 'browser-hang-' + st.key, name: 'hang[' + st.key + ']', options: ['No', 'Yes'], selected: latency.hang[st.key] ? 'Yes' : 'No' }) }) %>
+            <%- F.field({ id: 'hang-seconds-' + st.key, label: st.label + ' (Browser hang time, seconds)', cls: 'lat-cell', control: F.input({ id: 'hang-seconds-' + st.key, name: 'hangSeconds[' + st.key + ']', value: latency.hangSeconds[st.key], num: true }) }) %>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </details>
+  </form>
+</div>
+<div class="login-box" id="block-login" data-block="form-frame">
+  <h1>TCS BaNCS Insurance - Login</h1>
+  <form method="post" action="/login" id="form-login">
+    <div class="fields one" id="fields-login">
+      <%- F.field({ id: 'login-user', label: 'User', mandatory: true, control: F.select({ id: 'login-user', name: 'user', options: [['', '--Select--']].concat(users.map(function (u) { return [u.id, u.name + ' \u2014 ' + (u.kind === 'capturer' ? 'Maker' : 'Checker') + ' (' + u.role + ')']; })) }) }) %>
+      <%- F.field({ id: 'login-password', label: 'Password', mandatory: true, control: F.input({ id: 'login-password', name: 'password', type: 'password' }) }) %>
+      <%- F.field({ id: 'login-branch', label: 'Branch', control: F.input({ id: 'login-branch', value: 'HO', readonly: true }) }) %>
+      <%- F.field({ id: 'login-language', label: 'Language', control: F.input({ id: 'login-language', value: 'ENGLISH', readonly: true }) }) %>
+    </div>
+    <div class="btnbar button-bar" id="bar-login-actions" data-block="button-bar"><button class="btn" type="submit" id="btn-login">Login</button></div>
+  </form>
+  <div class="hint" id="login-hint"><% if (book === 'closed') { %>Closed book: password Closed@2026.<% } else { %>Maker: SYS-ADMIN &middot; Checker: PREM-ADM. Any password is accepted.<% } %></div>
+</div>
+<%- include('partials/bottom') %>

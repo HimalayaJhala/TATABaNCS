@@ -1,0 +1,28 @@
+<%- include('partials/top') %>
+<% var id = policy.contractNo; var e = endorsement; %>
+<div class="action-bar" id="action-bar" data-block="action-bar">
+<% if (!e) { %>
+  <div class="btnbar button-bar" id="bar-policy-actions" data-block="button-bar">
+    <form method="post" action="/policy/<%= id %>/endorse-alter" id="form-endorse-alter" data-busy<%- hangMs.endorseOpen ? ' data-hang-ms="' + hangMs.endorseOpen + '"' : '' %>><button class="btn" type="submit" id="btn-endorse-alter">Endorse/Alter</button></form>
+    <%- include('partials/actbtn', { action: '/policy/' + id + '/action/cancel-policy', id: 'btn-cancel-policy', label: 'Cancel Policy' }) %>
+    <form method="get" action="/policy/<%= id %>/endorsement-quotes"><button class="btn" type="submit" id="btn-endr-history-new">Endr History/New</button></form>
+    <%- include('partials/actbtn', { action: '/policy/' + id + '/action/premium-transaction', id: 'btn-premium-transaction', label: 'Premium Transaction' }) %>
+    <%- include('partials/actbtn', { action: '/policy/' + id + '/action/follow-up-report', id: 'btn-follow-up-report', label: 'Follow-up Report' }) %>
+  </div>
+  <div class="btnbar button-bar" id="bar-policy-navigation" data-block="button-bar">
+    <a class="btn" id="btn-back" href="/policy-servicing/search">Back</a>
+    <a class="btn" id="btn-continue" href="/policy/<%= id %>/basic-details">Continue</a>
+    <%- include('partials/actbtn', { action: '/policy/' + id + '/action/premium-projection', id: 'btn-premium-projection', label: 'Premium Projection' }) %>
+    <% if (policy.productCode === 'OMSLISPI') { %><%- include('partials/actbtn', { action: '/policy/' + id + '/action/eac', id: 'btn-eac', label: 'EAC' }) %><% } %>
+  </div>
+<% } else { %>
+  <%- include('partials/bar', { bar: bar, contractNo: id, returnTo: 'policy' }) %>
+  <div class="btnbar button-bar" id="bar-endorsement-navigation" data-block="button-bar">
+    <a class="btn" id="btn-back" href="/policy/<%= id %>?ctx=policy">Back</a>
+    <a class="btn" id="btn-continue" href="/policy/<%= id %>/basic-details">Continue</a>
+    <%- include('partials/actbtn', { action: '/policy/' + id + '/action/premium-projection', id: 'btn-premium-projection', label: 'Premium Projection' }) %>
+  </div>
+<% } %>
+</div>
+<% if (typeof modal !== 'undefined') { %><%- include('partials/endorse-modal') %><% } %>
+<%- include('partials/bottom') %>

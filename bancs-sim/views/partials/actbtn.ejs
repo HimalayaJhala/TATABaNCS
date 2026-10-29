@@ -1,0 +1,1 @@
+<form method="post" action="<%= action %>"<% if (typeof busy !== 'undefined' && busy) { %> data-busy<% } %>><% if (typeof returnTo !== 'undefined') { %><input type="hidden" name="returnTo" value="<%= returnTo %>"><% } %><button class="btn" type="submit" id="<%= id %>"><%= label %></button></form>

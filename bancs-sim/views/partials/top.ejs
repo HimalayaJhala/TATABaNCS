@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TCS BaNCS Insurance</title>
+<link rel="stylesheet" href="/static/bancs.css">
+<%- include('whatfix') %>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=3">
+<link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="/favicon.ico?v=3">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v=3">
+</head>
+<body class="bancs" data-system-date="<%= config.systemDate %>" data-screen="<%= screen %>">
+<div id="page" class="page" data-block="page">
+  <header class="chrome" id="region-header" data-block="header">
+    <a href="/home" id="logo-home" class="logo" title="Home" data-block="logo">
+      <svg class="bank-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 3 10v2.5h26V10z" fill="#3f63a8"/><rect x="5.5" y="14.5" width="3.6" height="9" fill="#5074b1"/><rect x="11" y="14.5" width="3.6" height="9" fill="#5074b1"/><rect x="17.4" y="14.5" width="3.6" height="9" fill="#5074b1"/><rect x="22.9" y="14.5" width="3.6" height="9" fill="#5074b1"/><rect x="3" y="25" width="26" height="3" fill="#3f63a8"/></svg>
+      <span class="wordmark" id="logo-text">BANK</span>
+    </a>
+    <div class="welcome" id="welcome-user"><% if (user) { %>Welcome <%= user.name %><% } %></div>
+    <div class="swoosh" aria-hidden="true"></div>
+    <div class="rolestrip">
+      <span class="roletab" id="user-role"><%= user ? user.role : '' %><i></i></span>
+      <span class="roletab" id="user-branch"><%= user ? user.branch : '' %><i></i></span>
+      <span class="roletab" id="user-language"><%= user ? user.language : '' %><i></i></span>
+    </div>
+    <div class="links"><a href="#" id="link-useful">Useful Links</a> | <a href="#" id="link-portal">Company Portal</a></div>
+    <% if (typeof devMenu !== 'undefined') { %><button type="button" class="dev-btn<%= user ? ' beside-power' : '' %>" id="btn-dev-menu" title="Developer menu" aria-label="Developer menu" aria-haspopup="true" aria-expanded="false" aria-controls="demo-controls" data-block="dev-menu-button"><svg viewBox="0 0 20 20" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 6.6a2.8 2.8 0 0 1 5.6 0"/><rect x="6.2" y="6.6" width="7.6" height="8" rx="3.4" fill="#fff" stroke="none"/><path d="M10 7.6v7M3.8 10h2.4M13.8 10h2.4M4.6 5.2l2 1.6M15.4 5.2l-2 1.6M4.6 14.8l2-1.6M15.4 14.8l-2-1.6"/></g></svg></button><% } %>
+    <% if (user) { %><a class="power" id="btn-logout" href="/logout" title="Logout"><svg viewBox="0 0 20 20"><defs><radialGradient id="pw" cx="40%" cy="30%" r="70%"><stop offset="0" stop-color="#5fb0f0"/><stop offset="1" stop-color="#036fb9"/></radialGradient></defs><circle cx="10" cy="10" r="9.5" fill="url(#pw)"/><path d="M10 4.3v5.3M6.6 6.4a4.6 4.6 0 1 0 6.8 0" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></a><% } %>
+    <div class="dates">
+      <span class="dl">Batch Date:</span><span class="dv" id="batch-date"><%= config.batchDate %></span>
+      <span class="dl">System Date:</span><span class="dv" id="system-date"><%= config.systemDate %></span>
+      <span class="sysname"><span class="dl">System Name:</span><span class="dv" id="system-name"><%= config.systemName %></span></span>
+    </div>
+  </header>
+
+  <% if (user && typeof hideNav === 'undefined') { var single = topNav.length === 1; %>
+  <nav class="topnav<%= single ? ' single' : '' %>" id="top-nav" data-block="top-navigation">
+    <a class="bizops" id="topnav-business-operations" href="/home"><span class="back" aria-hidden="true">&#8630;</span>Business Operations<span class="flag" aria-hidden="true">&#9654;</span></a>
+    <div class="tabs">
+      <% topNav.forEach(function (t) { %><a id="<%= t.id %>" href="<%= t.href %>" class="<%= t.active ? 'active' : '' %>"><%= t.label %></a><% }) %>
+    </div>
+  </nav>
+  <div class="subbar" id="region-subbar" data-block="sub-navigation">
+    <a id="subnav-search-policy" class="search-policy" href="/policy-servicing/search">Search Policy</a>
+    <span class="star" aria-hidden="true">&#9733;</span><a id="subnav-show-policy-version" class="spv" href="#">Show Policy Version</a>
+  </div>
+  <% } else if (typeof hideNav === 'undefined') { %>
+  <div class="homebar"></div>
+  <% } %>
+
+  <% if (typeof homeBar !== 'undefined') { %><div class="homebar"></div><% } %>
+  <div class="body-row">
+    <% if (nav) { %>
+    <aside class="leftnav" id="left-nav" data-block="left-navigation">
+      <span class="leftnav-tools" title="Collapse"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.5" fill="#2a78d0"/><path d="M4 9.5l2.2-3 2 3M12 6.5l-2.2 3-2-3" stroke="#fff" stroke-width="1.6" fill="none"/></svg></span>
+      <ul>
+        <% nav.forEach(function (n) { %>
+        <li class="<%= n.active ? 'active' : (n.scoped ? 'scoped' : '') %>" data-block="nav-item" data-nav="<%= n.slug %>"><a id="<%= n.id %>" href="<%= n.href %>" title="<%= n.label %>"><span class="dot"></span><%= n.label %></a></li>
+        <% }) %>
+      </ul>
+    </aside>
+    <% } %>
+    <main id="content" class="content<%= nav ? '' : ' wide' %>" data-block="content">
+    <div class="screen" id="screen-<%= screen %>" data-block="screen" data-screen="<%= screen %>">
+      <% if (breadcrumb) { %><div class="breadcrumb" id="breadcrumb"><span class="crumb-handle">&#9664;</span><%= breadcrumb %></div><% } %>
+      <div id="block-messages" data-block="messages">
+      <% if (error) { %><div class="msg msg-error" id="error-band" role="alert"><span class="msg-icon">&#10006;</span><div class="msg-body"><span id="error-message"><%= error %></span><% if (errorHint) { %><span class="msg-hint" id="error-hint"><%= errorHint.text %> <a id="link-error-hint" href="<%= errorHint.href %>"><%= errorHint.linkText %></a></span><% } %></div></div><% } %>
+      <% if (info) { %><div class="msg msg-info" id="info-band" role="status"><span class="msg-icon">i</span><span id="info-message"><%= info %></span></div><% } %>
+      </div>
+      <% if (header) { %>
+      <div class="policy-header" id="policy-header" data-block="policy-header">
+        <table>
+          <tr><td class="lbl">Product Name:</td><td class="val" id="hdr-product-name"><%= header.productName %></td>
+              <td class="lbl">Currency:</td><td class="val" id="hdr-currency"><%= header.currency %></td></tr>
+          <tr><td class="lbl">Quotation Number:</td><td class="val" id="hdr-quotation-number"><%= header.quotationNumber %></td>
+              <td class="lbl" id="hdr-policy-number-label"><%= header.policyLabel %>:</td>
+              <td class="val"><% if (header.policyLink) { %><a id="hdr-policy-number" class="parent-link" href="<%= header.policyLink %>"><%= header.policyNumber %></a><% } else { %><span id="hdr-policy-number"><%= header.policyNumber %></span><% } %></td></tr>
+          <tr><td class="lbl">Status:</td><td class="val" id="hdr-status"><%= header.status %></td>
+              <td class="lbl">Sub Status:</td><td class="val" id="hdr-sub-status"><%= header.subStatus %></td></tr>
+        </table>
+      </div>
+      <% } %>
+      <div class="page-loader" id="page-loader" data-block="loader" role="status" aria-live="polite" hidden><span class="ring" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="loader-text">loading</span></div>

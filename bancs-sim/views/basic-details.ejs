@@ -1,0 +1,161 @@
+<%- include('partials/top') %>
+<% var p = policy, b = p.basic, o = p.owner;
+   var left = [
+     ['Waiver Number', b.waiverNumber],
+     ['Quote Instance Number', b.quoteInstanceNumber, true],
+     ['Distribution Channel', b.distributionChannel, true, ['Personal Finance Advice SA', 'Broker Distribution', 'Direct']],
+     ['Sales Code', b.salesCode, true],
+     ['Broker External Reference', b.brokerExternalReference],
+     ['Quote Expiry Date', b.quoteExpiryDate, true],
+     ['Nature of Contracting Party', o.nature],
+     ['Organization Name', ''],
+     ['Contracting Party First Name', o.firstName],
+     ['Contracting Party Last Name', o.lastName],
+     ['Legal Structure', b.legalStructure],
+     ['Individual Identity Type', o.identityType],
+     ['Minor', b.minor],
+     ['Savings Need', b.savingsNeed, true, ['General Savings', 'Retirement', 'Education']],
+     ['Policy Expiry Date', ''],
+     ['Income Payment Date', ''],
+     ['Amount deducted from contract value', b.amountDeductedFromContractValue, false, null, true],
+     ['Amount deducted from first regular contribution', b.amountDeductedFirstRegularContribution, false, null, true],
+     ['Market Value', b.marketValue, false, null, true],
+     ['Net Estimated Refund Amount', '', false, null, true],
+     ['Maturity Date', b.maturityDate],
+     ['Net Yield Percentage', b.netYield, false, null, true]
+   ];
+   var right = [
+     ['Admin Quote Status', ''],
+     ['Segment', b.segment, true, ['Personal Finance SA', 'Mass Foundation', 'Wealth']],
+     ['Adviser Party Code', b.adviserPartyCode, true],
+     ['Sales Code Type', b.salesCodeType, true, ['0', '1', '2']],
+     ['Quote Date', b.quoteDate, true],
+     ['Currency', p.currency, true, ['South African Rand']],
+     ['Contracting Party Code', o.partyCode],
+     ['Contracting Party Initials', o.initials],
+     ['Contracting Party Middle Name', o.middleName],
+     ['Contracting Party Date of Birth', o.dob],
+     ['Organization Identity Type', ''],
+     ['Identity Type Number', o.idNumber],
+     ['Plan Type', b.planType],
+     ['Policy Start Date', b.policyStartDate],
+     ['Next Policy Anniversary Date', b.nextPolicyAnniversaryDate],
+     ['Amount deducted from each regular contribution', b.amountDeductedEachRegularContribution, false, null, true],
+     ['Amount deducted from lump sum and/or transfer amount', b.amountDeductedLumpSum, false, null, true],
+     ['Investment Term in months', b.investmentTermMonths, false, null, true],
+     ['Outstanding ZIL Amount', '', false, null, true],
+     ['Gross Yield Percentage', b.grossYield, false, null, true]
+   ];
+   var rows = Math.max(left.length, right.length);
+   var fmt = function (n) { return Number(n).toFixed(3); };
+%>
+<%
+  var slug = function (t) { return 'bd-' + t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+  var fromArr = function (f) {
+    var id = slug(f[0]);
+    return F.field({ id: id, label: f[0], mandatory: f[2], control: f[3] ? F.select({ id: id, options: f[3], selected: f[1], disabled: true }) : F.input({ id: id, value: f[1], readonly: true, num: f[4] }) });
+  };
+  var ro = function (id, label, value, o) { o = o || {}; return F.field({ id: id, label: label, mandatory: o.m, control: F.input({ id: id, value: value, readonly: true, num: o.num }) }); };
+  var ysel = function (id, label, value, m) { return F.field({ id: id, label: label, mandatory: m, control: F.select({ id: id, options: ['No', 'Yes'], selected: value, disabled: true }) }); };
+%>
+<form method="post" action="/policy/<%= p.contractNo %>/basic-details" id="form-basic-details" data-busy<%- hangMs.basicSave ? ' data-hang-ms="' + hangMs.basicSave + '"' : '' %>>
+<details class="section" open id="sec-basic-information" data-block="section"><summary>Basic Information</summary>
+  <div class="section-body" id="body-basic-information" data-block="section-body">
+    <div class="fields" id="fields-basic-information">
+      <% for (var i = 0; i < rows; i++) { %><%- left[i] ? fromArr(left[i]) : F.blank() %><%- right[i] ? fromArr(right[i]) : F.blank() %><% } %>
+      <div class="field blank spacer-row" data-block="spacer" style="grid-column: 1 / -1"></div>
+      <%- ro('bd-personalised-investment-name', 'Personalised Investment Name', b.personalisedInvestmentName) %>
+      <%- ro('bd-application-date', 'Application Date', b.applicationDate, { m: true }) %>
+      <%- ro('bd-next-due-date', 'Next Due Date', b.nextDueDate, { m: true }) %>
+      <%- ro('bd-first-contribution-due-date', 'First Contribution Due Date', b.firstContributionDueDate, { m: true }) %>
+    </div>
+  </div>
+</details>
+
+<details class="section" open id="sec-admin-quote-type" data-block="section"><summary>Admin Quote Type</summary>
+  <div class="section-body" id="body-admin-quote-type" data-block="section-body">
+    <div class="fields" id="fields-admin-quote-type">
+      <%- ysel('bd-admin-quote', 'Admin Quote', 'No', true) %>
+      <%- ro('bd-carma-grouping-key', 'CARMA Grouping key', '') %>
+      <%- ro('bd-submission-date', 'Submission Date', '') %>
+      <%- F.field({ id: 'bd-reason-for-investing', label: 'Reason for Investing', mandatory: true, control: F.select({ id: 'bd-reason-for-investing', options: ['General Savings'], selected: 'General Savings', disabled: true }) }) %>
+      <%- ysel('bd-trustee-endorsed', 'Trustee Endorsed', 'No') %>
+      <%- F.blank() %>
+    </div>
+  </div>
+</details>
+
+<details class="section" open id="sec-investment-details" data-block="section"><summary>Investment Details</summary>
+  <div class="section-body" id="body-investment-details" data-block="section-body">
+    <div class="grid-block" id="grid-investment-details" data-block="grid">
+      <table class="grid" id="investment-details">
+        <thead><tr><th>Savings Need</th><th>Contribution Type</th><th>Contribution Amount</th><th>Fund Value</th><th>Sum Covered</th><th>Premium</th></tr></thead>
+        <tbody><tr><td><%= b.savingsNeed %></td><td><%= p.contribution.type.toUpperCase() %></td><td class="r"><%= p.contribution.amount %></td><td></td><td></td><td></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</details>
+
+<details class="section" open id="sec-life-covered-list" data-block="section"><summary>Life Covered List</summary>
+  <div class="section-body" id="body-life-covered-list" data-block="section-body">
+    <div class="grid-block" id="grid-life-covered-list" data-block="grid">
+      <table class="grid" id="life-covered-list">
+        <thead><tr><th style="width:6%"></th><th>Serial No</th><th>Life Covered Full Name</th><th>Life Covered Date of Birth</th><th>Gender</th><th>Life Covered Party Code</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="btnbar button-bar" id="bar-life-covered" data-block="button-bar"><button class="btn" type="button" id="btn-life-covered-add">Add</button></div>
+  </div>
+</details>
+
+<details class="section" open id="sec-other-details" data-block="section"><summary>Other Details Application</summary>
+  <div class="section-body" id="body-other-details" data-block="section-body">
+    <div class="fields" id="fields-other-details">
+      <%- F.field({ id: 'bd-amend-pot-percentage-reason', label: 'Amend Pot Percentage Reason', control: F.select({ id: 'bd-amend-pot-percentage-reason', name: 'amendPotReason', options: [''].concat(amendReasons), selected: basicVals.amendPotReason, disabled: !feeEditable }) }) %>
+      <%- F.blank() %>
+      <%- ro('bd-annual-contribution-made', 'Annual Contribution Made', '0.00', { num: true }) %>
+      <%- F.blank() %>
+      <%- ro('bd-lifetime-contribution-made', 'Lifetime Contribution Made', '0.00', { num: true }) %>
+      <%- F.blank() %>
+      <%- F.field({ id: 'bd-no-dealings', label: 'No Dealings', mandatory: true, control: F.select({ id: 'bd-no-dealings', name: 'noDealings', options: ['No', 'Yes'], selected: basicVals.noDealings, disabled: !feeEditable }) }) %>
+      <%- F.blank() %>
+      <%- F.field({ id: 'bd-remove-reason', label: 'Remove Reason', control: F.textarea({ id: 'bd-remove-reason', name: 'removeReason', value: basicVals.removeReason, maxlength: 250, readonly: !feeEditable }) }) %>
+      <%- F.blank() %>
+      <%- ro('bd-extended-grace-period-expiry-date', 'Extended Grace Period Expiry Date', '') %>
+      <%- F.blank() %>
+      <%- ro('bd-vested-percentage', 'Vested percentage', b.vestedPercentage, { num: true }) %>
+      <%- ro('bd-non-vested-percentage', 'Non-vested percentage', b.nonVestedPercentage, { num: true }) %>
+    </div>
+  </div>
+</details>
+
+<details class="section" open id="sec-remuneration-fee-details" data-block="section"><summary>Remuneration And Fee Details</summary>
+  <div class="section-body" id="body-remuneration-fee-details" data-block="section-body">
+    <div class="fields" id="fields-remuneration-fee-details">
+      <%- F.field({ id: 'vat-inclusive-asset-advice-fee', label: 'VAT Inclusive Asset Advice Fee', control: F.input({ id: 'vat-inclusive-asset-advice-fee', name: 'vatInclusive', value: fmt(shownFee.vatInclusive), num: true, readonly: !feeEditable }) }) %>
+      <%- F.field({ id: 'vat-exclusive-asset-advice-fee', label: 'VAT Exclusive Asset Advice Fee', control: F.input({ id: 'vat-exclusive-asset-advice-fee', value: fmt(shownFee.vatExclusive), num: true, readonly: true }) }) %>
+      <div class="field blank spacer-row" data-block="spacer" style="grid-column: 1 / -1; min-height: 150px"></div>
+      <%- ro('bd-transaction-admin-fee-scaling', 'Transaction admin fee scaling', b.transactionAdminFeeScaling, { num: true }) %>
+      <%- ro('bd-mva-fee-scaling', 'MVA Fee Scaling', b.mvaFeeScaling, { num: true }) %>
+      <%- ro('bd-reduction-fee-scaling', 'Reduction fee scaling', b.reductionFeeScaling, { num: true }) %>
+      <%- F.blank() %>
+      <div class="field blank spacer-row" data-block="spacer" style="grid-column: 1 / -1; min-height: 40px"></div>
+    </div>
+  </div>
+</details>
+
+<details class="section" open id="sec-commission-details" data-block="section"><summary>Commission Details</summary>
+  <div class="section-body" id="body-commission-details" data-block="section-body">
+    <div class="fields" id="fields-commission-details">
+      <%- ysel('bd-rider-commission-applicable', 'Rider Commission Applicable', 'No') %>
+      <%- F.blank() %>
+    </div>
+  </div>
+</details>
+
+<div class="btnbar button-bar" id="bar-basic-details-actions" data-block="button-bar" style="margin-top:6px">
+  <button class="btn" type="submit" id="btn-save">Save</button>
+  <a class="btn" id="btn-continue" href="/policy/<%= p.contractNo %>/acceptance">Continue</a>
+</div>
+</form>
+<%- include('partials/bottom') %>

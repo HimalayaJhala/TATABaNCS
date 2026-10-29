@@ -1,0 +1,32 @@
+{
+  "name": "om-seek-bancs-sim",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simulated BaNCS front-end and Excel work list over a shared dummy dataset for the Old Mutual Seek PoC",
+  "scripts": {
+    "demo": "node scripts/demo.js",
+    "dev": "node scripts/demo.js",
+    "data": "node data-service/server.js",
+    "bancs": "node bancs-sim/server.js",
+    "seed": "node scripts/build-seed.js",
+    "reset": "curl -s -X POST http://localhost:4000/admin/reset && echo && node scripts/build-worklist.js && node scripts/build-calcsheet.js",
+    "test": "node scripts/checklist.js",
+    "worklist": "node scripts/build-worklist.js",
+    "test:split": "node scripts/checklist-split.js",
+    "test:forms": "node scripts/checklist-forms.js",
+    "audit:blocks": "node scripts/audit-blocks.js",
+    "calcsheet": "node scripts/build-calcsheet.js",
+    "test:hang": "node scripts/checklist-hang.js",
+    "test:sheet": "node scripts/verify-calcsheet.js",
+    "transition": "node scripts/build-transition.js",
+    "test:transition": "node scripts/checklist-transition.js"
+  },
+  "dependencies": {
+    "ejs": "3.1.10",
+    "exceljs": "^4.4.0",
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}

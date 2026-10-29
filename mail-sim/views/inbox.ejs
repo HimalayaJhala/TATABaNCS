@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title><%= title %> - Mail</title>
+<link rel="stylesheet" href="/static/mail.css">
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+<%- include('whatfix') %>
+</head>
+<body data-screen="mail-inbox" data-user="<%= userId %>">
+<div class="app" id="page" data-block="page">
+  <header class="top" id="region-header" data-block="header">
+    <span class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 9h24v15H4z" fill="#fff"/><path d="M4 9l12 9 12-9" fill="none" stroke="#2b579a" stroke-width="2"/></svg> Mail</span>
+    <span class="who" id="mailbox-owner">
+      <span class="chip <%= personas[userId].cls %>" id="mailbox-role"><%= personas[userId].role.toUpperCase() %></span>
+      <b id="mailbox-name"><%= me.name %></b> <span class="muted"><%= me.role %></span>
+    </span>
+    <span class="switch" id="mailbox-switch" data-block="button-bar">
+      <% Object.keys(personas).forEach(function (id) { %><a id="switch-<%= personas[id].cls %>" class="<%= id === userId ? 'on' : '' %>" href="/mail?user=<%= id %>">Open <%= personas[id].role %>'s mailbox</a><% }) %>
+      <a id="link-to-bancs" class="go" href="<%= bancs %>/login">Go to BaNCS login</a>
+    </span>
+  </header>
+  <div class="body">
+    <nav class="folders" id="folders" data-block="left-navigation"><a class="on" id="folder-inbox" href="/mail?user=<%= userId %>">Inbox <% if (unread) { %><span class="count" id="unread-count"><%= unread %></span><% } %></a><span>Sent Items</span><span>Drafts</span><span>Deleted Items</span></nav>
+    <section class="list" id="message-list" data-block="grid">
+      <div class="list-head">Inbox</div>
+      <% if (!messages.length) { %><div class="empty" id="inbox-empty">No messages. A case email arrives here when a case is assigned.</div><% } %>
+      <% messages.forEach(function (m) { %>
+      <a class="msg <%= m.read ? '' : 'unread' %> <%= open && open.id === m.id ? 'sel' : '' %>" id="message-<%= m.id %>" data-message="<%= m.id %>" data-kind="<%= m.kind %>" href="/mail?user=<%= userId %>&open=<%= m.id %>">
+        <span class="from"><%= m.from.name %></span><span class="when"><%= m.sentAt.time %></span>
+        <span class="subj"><%= m.subject %></span>
+        <span class="sub2"><% if (m.attachment) { %>&#128206; <% } %><%= m.kind === 'case' ? 'Work list attached' : m.kind === 'verify' ? 'Action: verify and activate' : 'Approved' %></span>
+      </a>
+      <% }) %>
+    </section>
+    <main class="read" id="reading-pane" data-block="content">
+      <% if (!open) { %><div class="empty" id="no-message-open">Select a message to read it.</div><% } else { var p = ctx.pol.policy, f = ctx.pol.fee, w = ctx.row, q = ctx.quote; %>
+      <article id="message-body" data-block="screen" data-message="<%= open.id %>" data-kind="<%= open.kind %>">
+        <h1 id="message-subject"><%= open.subject %></h1>
+        <div class="meta" id="message-meta">
+          <b id="message-from"><%= open.from.name %></b> <span class="muted">&lt;<%= open.from.title %>&gt;</span><br>
+          <span class="muted">To:</span> <span id="message-to"><%= me.name %></span> <span class="muted">&middot; <%= open.sentAt.date %> <%= open.sentAt.time %></span>
+        </div>
+        <% if (open.attachment) { %>
+        <div class="attach" id="message-attachment" data-block="attachment"><span class="clip">&#128206;</span>
+          <a id="link-attachment" href="/attachment/<%= open.id %>">Split Fee Cases and Annuities Jul 2026.xlsx</a> <span class="muted">(Excel workbook, sheet S&amp;I)</span></div>
+        <% } %>
+        <div class="text" id="message-text">
+          <% if (open.kind === 'case') { %>
+          <p>Hi <%= me.name.split(' ')[0] %>,</p>
+          <p>Attached is the S&amp;I work list. Please process contract <b id="case-contract"><%= open.contractNo %></b>: switch off the asset advice fee (set the VAT Inclusive Asset Advice Fee to 0) following the SWITCHING OFF FEES SOP. Check the ID number below against BaNCS before you start. Once you have submitted it, another person must verify and activate it; it cannot be activated by you.</p>
+          <% } else if (open.kind === 'verify') { %>
+          <p>Hi <%= me.name.split(' ')[0] %>,</p>
+          <p>I have submitted endorsement <b id="case-quote"><%= q ? q.quotationNumber : '' %></b> (<%= q ? q.types.join(', ') : '' %>) for contract <b id="case-contract"><%= open.contractNo %></b>. It is waiting for verification. Please follow the verification steps in the SOP: search the contract, check that the ID number matches the work list, open Endorsement Quotes, select the Change Advisor Details quote, open Endr Quote Submission and click Activate.</p>
+          <% } else { %>
+          <p>Hi <%= me.name.split(' ')[0] %>,</p>
+          <p>Endorsement <b id="case-quote"><%= q ? q.quotationNumber : '' %></b> for contract <b id="case-contract"><%= open.contractNo %></b> has been activated. Its status is now <b><%= q ? q.subStatus : '' %></b>, and the asset advice fee on the policy is <b id="case-fee-now"><%= Number(f.vatInclusive).toFixed(3) %></b> (VAT Inclusive) / <%= Number(f.vatExclusive).toFixed(3) %> (VAT Exclusive).</p>
+          <% } %>
+          <table class="case" id="case-details" data-block="grid">
+            <tr><th>Contract number</th><td id="case-d-contract"><%= open.contractNo %></td><th>Product</th><td><%= p.productName %></td></tr>
+            <tr><th>Client</th><td><%= p.owner.firstName %> <%= p.owner.lastName %></td><th>ID number (work list)</th><td id="case-d-id"><%= w.idNumber %></td></tr>
+            <tr><th>Declaration signed</th><td id="case-d-declared"><%= w.declarationSignedDate %></td><th>VAT Inclusive fee now</th><td id="case-d-fee"><%= Number(f.vatInclusive).toFixed(3) %></td></tr>
+          </table>
+          <p class="muted">Regards,<br><%= open.from.name %><br><%= open.from.title %></p>
+        </div>
+        <% if (open.kind === 'case') { %>
+        <div class="preview" id="attachment-preview" data-block="section"><div class="preview-head">Attachment preview: Split Fee Cases and Annuities Jul 2026.xlsx &middot; sheet S&amp;I</div>
+          <div class="grid-wrap"><table class="sheet" id="sheet-si" data-block="grid">
+            <thead><tr><th></th><th>Assigned</th><th>Approver</th><th>ContractNumber</th><th>BaNCS Product Code</th><th>ProductCode</th><th>IntermediaryCode</th><th>Product Instance</th><th>Comm Share</th><th>Total Commission</th><th>ID Number</th><th>Declaration Signed Date</th></tr></thead>
+            <tbody>
+            <% ctx.worklist.forEach(function (r, i) { %>
+              <tr id="sheet-row-<%= r.contractNumber %>" class="<%= r.contractNumber === open.contractNo ? 'case-row' : '' %>">
+                <td class="rn"><%= i + 2 %></td><td><%= r.assigned %></td><td><%= r.approver %></td><td class="txt"><%= r.contractNumber %></td><td><%= r.bancsProductCode %></td><td><%= r.productCode %></td>
+                <td class="txt"><%= r.intermediaryCode %></td><td class="n"><%= r.productInstance %></td><td class="n"><%= r.commShare %></td><td class="n"><%= r.totalCommission %></td><td class="txt"><%= r.idNumber %></td><td><%= r.declarationSignedDate %></td>
+              </tr>
+            <% }) %>
+            </tbody></table></div></div>
+        <% } %>
+      </article>
+      <% } %>
+    </main>
+  </div>
+</div>
+</body>
+</html>

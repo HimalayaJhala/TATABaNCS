@@ -1,0 +1,3 @@
+<% /* kept for compatibility: one Basic Details field from the [label, value, mandatory, options, numeric] array */ %>
+<% var fid = 'bd-' + f[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); %>
+<%- F.field({ id: fid, label: f[0], mandatory: f[2], control: f[3] ? F.select({ id: fid, options: f[3], selected: f[1], disabled: true }) : F.input({ id: fid, value: f[1], readonly: true, num: f[4] }) }) %>

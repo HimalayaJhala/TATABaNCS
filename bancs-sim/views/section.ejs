@@ -1,0 +1,15 @@
+<%- include('partials/top') %>
+<details class="section" open id="sec-<%= slug %>" data-block="section"><summary><%= title %></summary>
+<div class="section-body" id="body-<%= slug %>" data-block="section-body">
+<% if (slug === 'contracting-party') { var o = policy.owner; %>
+  <div class="grid-block" id="grid-<%= slug %>" data-block="grid"><table class="grid"><thead><tr><th>Party Code</th><th>Title</th><th>Full Name</th><th>ID No.</th><th>Date of Birth</th><th>Role</th></tr></thead>
+  <tbody><tr><td><%= o.partyCode %></td><td><%= o.title %></td><td><%= o.firstName %> <%= o.middleName %> <%= o.lastName %></td><td id="cp-id-number"><%= o.idNumber %></td><td><%= o.dob %></td><td>Contract Owner</td></tr></tbody></table></div>
+<% } else if (slug === 'adviser-info' || slug === 'requestor-advisor-info') { %>
+  <div class="grid-block" id="grid-<%= slug %>" data-block="grid"><table class="grid"><thead><tr><th>Serial No</th><th>Adviser Party Code</th><th>Sales Code</th><th>Name</th><th>Sales Code Type</th><th>Distribution Channel</th><th>Segment</th><th>Share %</th><th>Primary</th></tr></thead>
+  <tbody><% advisers.forEach(function (a, i) { %><tr><td><%= i + 1 %></td><td><%= a.partyCode %></td><td><%= a.salesCode %></td><td><%= a.name %></td><td><%= a.type %></td><td><%= a.distributionChannel %></td><td><%= a.segment %></td><td class="r"><%= a.share %>.00</td><td><%= a.primary ? 'Yes' : 'No' %></td></tr><% }) %></tbody></table></div>
+<% } else { %>
+  <div class="grid-block" id="grid-<%= slug %>" data-block="grid"><table class="grid"><tbody><tr><td class="empty">No details available for display.</td></tr></tbody></table></div>
+<% } %>
+</div>
+</details>
+<%- include('partials/bottom') %>

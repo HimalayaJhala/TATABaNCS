@@ -1,0 +1,77 @@
+<%- include('partials/top') %>
+<% var id = policy.contractNo, c = change, rows = advisers.slice(); %>
+<form method="post" action="/policy/<%= id %>/requestor-advisor-info" id="form-requestor-advisor-info">
+<details class="section" open id="sec-requestor-advisor-details" data-block="section"><summary>Requestor Advisor Details</summary>
+<div class="section-body" id="body-requestor-advisor-details" data-block="section-body">
+  <div class="grid-block" id="grid-requestor-advisor-details" data-block="grid"><table class="grid" id="requestor-advisors">
+    <thead><tr><th style="width:24px"></th><th>Serial No</th><th>Advisor Party Code</th><th>Sales Code</th><th>Sales Code Type</th><th>Distribution Channel</th><th>Segment</th><th>Front End View</th><% if (c) { %><th>Change</th><% } %></tr></thead>
+    <tbody>
+    <% rows.forEach(function (a, i) { var out = c && c.replaces === a.id; %>
+      <tr id="rai-row-<%= i + 1 %>" class="<%= out ? 'old-row' : '' %>" data-sales-code="<%= a.salesCode %>">
+        <td><input type="checkbox" id="rai-check-<%= i + 1 %>" disabled></td>
+        <td style="text-align:center"><a class="serial" id="rai-serial-<%= i + 1 %>"><%= i + 1 %></a></td>
+        <td class="rai-party"><%= a.partyCode %></td>
+        <td class="rai-sales-code"><%= a.salesCode %></td>
+        <td><%= a.salesCodeType || '0' %></td>
+        <td><%= a.distributionChannel %></td>
+        <td><%= a.segment %></td>
+        <td><%= a.primary ? 'YES' : 'NO' %></td>
+        <% if (c) { %><td class="rai-change"><%= out ? 'To be replaced' : '' %></td><% } %>
+      </tr>
+    <% }) %>
+    <% if (c) { var n = c.add; %>
+      <tr id="rai-row-new" class="new-row" data-sales-code="<%= n.salesCode %>">
+        <td><input type="checkbox" name="selNew" value="1" id="rai-check-new"></td>
+        <td style="text-align:center"><%= rows.length + 1 %></td>
+        <td class="rai-party"><%= n.partyCode %></td>
+        <td class="rai-sales-code"><%= n.salesCode %></td>
+        <td><%= n.salesCodeType %></td>
+        <td><%= n.distributionChannel %></td>
+        <td>Personal Finance SA</td>
+        <td><%= n.primary ? 'YES' : 'NO' %></td>
+        <td class="rai-change">NEW (replaces <%= (rows.find(function (a) { return a.id === c.replaces; }) || {}).salesCode %>)</td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table></div>
+</div>
+</details>
+<div class="btnbar button-bar" id="bar-requestor-advisor-rows" data-block="button-bar" style="margin-top:8px">
+  <button class="btn" type="submit" name="op" value="add" id="btn-add"<%= imedOpen ? '' : ' disabled title="Use Endorse/Alter > Change Primary IMED first"' %>>Add</button>
+  <button class="btn" type="submit" name="op" value="delete" id="btn-delete"<%= imedOpen ? '' : ' disabled' %>>Delete</button>
+</div>
+<div class="btnbar button-bar" id="bar-requestor-advisor-actions" data-block="button-bar">
+  <a class="btn" id="btn-back" href="/policy/<%= id %>">Back</a>
+  <a class="btn" id="btn-continue" href="/policy/<%= id %>/acceptance">Continue</a>
+</div>
+</form>
+<% if (modal) { var f = modal.form; %>
+<div class="modal-overlay" id="adviser-add-overlay" data-block="modal-overlay">
+  <div class="modal-dialog wide" id="adviser-add-modal" data-block="modal" role="dialog" aria-modal="true" aria-labelledby="adviser-add-title">
+    <div class="modal-title" id="adviser-add-header" data-block="modal-header"><span id="adviser-add-title">Basic Information</span><a class="modal-close" id="btn-modal-close" href="/policy/<%= id %>/requestor-advisor-info" title="Close">&times;</a></div>
+    <div class="modal-body" id="adviser-add-body" data-block="modal-body">
+      <% if (modal.error) { %><div class="msg msg-error" id="modal-error-band" role="alert"><span class="msg-icon">&#10006;</span><span id="modal-error-message"><%= modal.error %></span></div><% } %>
+      <form method="post" action="/policy/<%= id %>/requestor-advisor-info/add" id="form-adviser-add">
+        <details class="section" open id="sec-basic-information" data-block="section"><summary>Basic Information</summary>
+        <div class="section-body" id="body-basic-information" data-block="section-body">
+          <div class="fields" id="fields-basic-information">
+            <%- F.field({ id: 'advisor-party-code', label: 'Advisor Party Code', mandatory: true, control: F.input({ id: 'advisor-party-code', name: 'partyCode', value: f.partyCode }) + '<button class="lookup" type="submit" name="op" value="lookup" id="btn-party-lookup" title="Find the party code from the Sales Code" formnovalidate></button>' }) %>
+            <%- F.field({ id: 'type-of-advisor', label: 'Type of Advisor', control: F.select({ id: 'type-of-advisor', name: 'typeOfAdvisor', options: [['', '']].concat(modal.advisorTypes), selected: f.typeOfAdvisor }) }) %>
+            <%- F.field({ id: 'sales-code', label: 'Sales Code', mandatory: true, control: F.input({ id: 'sales-code', name: 'salesCode', value: f.salesCode }) }) %>
+            <%- F.field({ id: 'distribution-channel', label: 'Distribution Channel', mandatory: true, control: F.select({ id: 'distribution-channel', name: 'distributionChannel', options: [['', '--Please Select--']].concat(modal.channels), selected: f.distributionChannel }) }) %>
+            <%- F.field({ id: 'sales-code-type', label: 'Sales Code Type', mandatory: true, control: F.select({ id: 'sales-code-type', name: 'salesCodeType', options: [['', '--Please Select--']].concat(modal.salesCodeTypes), selected: f.salesCodeType }) }) %>
+            <%- F.field({ id: 'primary-flag', label: 'Primary Flag', mandatory: true, control: F.select({ id: 'primary-flag', name: 'primaryFlag', options: [['', '--Please Select--'], 'Yes', 'No'], selected: f.primaryFlag }) }) %>
+            <%- F.field({ id: 'advisor-to-be-replaced', label: 'Advisor to be Replaced', mandatory: true, control: F.select({ id: 'advisor-to-be-replaced', name: 'replaces', options: [['', '--Please Select--']].concat(advisers.map(function (a) { return [a.id, a.partyCode + ' - ' + a.salesCode + ' - ' + a.name]; })), selected: f.replaces }) }) %>
+            <%- F.blank() %>
+          </div>
+        </div></details>
+        <div class="btnbar button-bar" id="bar-adviser-add-actions" data-block="button-bar" style="margin-top:14px">
+          <button class="btn" type="submit" name="op" value="save" id="btn-adviser-save">Save</button>
+          <a class="btn" id="btn-adviser-close" href="/policy/<%= id %>/requestor-advisor-info">Close</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<% } %>
+<%- include('partials/bottom') %>

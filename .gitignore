@@ -1,0 +1,15 @@
+node_modules/
+data-service/data/
+bancs-sim/data/
+test-output/
+.DS_Store
+
+# Client material: never commit or deploy (real SOP, emails, recordings, screenshots of their systems)
+*.eml
+*.docx
+*.docx.pdf
+*.mov
+*.mp4
+Screenshot*.png
+reference/
+Split Fee Cases and Annuities Aug 2026-dummy (1).xlsx

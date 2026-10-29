@@ -1,0 +1,20 @@
+<% var f = modal.form || {}; %>
+<div class="modal-overlay" id="acceptance-modal-overlay" data-block="modal-overlay">
+  <div class="modal-dialog narrow" id="acceptance-modal" data-block="modal" role="dialog" aria-modal="true" aria-labelledby="acceptance-modal-title">
+    <div class="modal-title" id="acceptance-modal-header" data-block="modal-header"><span id="acceptance-modal-title">Acceptance Details</span><a class="modal-close" id="btn-modal-close" href="/policy/<%= policy.contractNo %>/acceptance" title="Close">&times;</a></div>
+    <div class="modal-body" id="acceptance-modal-body" data-block="modal-body">
+      <% if (modal.error) { %><div class="msg msg-error" id="modal-error-band" role="alert"><span class="msg-icon">&#10006;</span><span id="modal-error-message"><%= modal.error %></span></div><% } %>
+      <form method="post" action="/policy/<%= policy.contractNo %>/acceptance/1" id="form-acceptance-details">
+        <details class="section" open id="sec-acceptance-info" data-block="section"><summary>Acceptance Info</summary>
+          <div class="section-body" id="body-acceptance-info" data-block="section-body">
+            <div class="fields" id="fields-acceptance-info">
+              <%- F.field({ id: 'application-accepted', label: 'Application Accepted', mandatory: true, control: F.select({ id: 'application-accepted', name: 'accepted', options: ['', 'Yes', 'No'], selected: f.accepted }) }) %>
+              <%- F.field({ id: 'acceptance-date', label: 'Acceptance Date', mandatory: true, control: F.input({ id: 'acceptance-date', name: 'date', value: f.date || '', date: true, placeholder: 'DD/MM/YYYY' }) + F.cal() }) %>
+            </div>
+          </div>
+        </details>
+        <div class="btnbar button-bar" id="bar-acceptance-modal-actions" data-block="button-bar"><button class="btn" type="submit" id="btn-save">Save</button><a class="btn" id="btn-acceptance-back" href="/policy/<%= policy.contractNo %>/acceptance">Back</a></div>
+      </form>
+    </div>
+  </div>
+</div>

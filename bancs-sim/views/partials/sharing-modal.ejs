@@ -1,0 +1,52 @@
+<% var t = modal.type, m = modal.meta, cols = m.cols, contribution = t === 'contribution';
+%>
+<div class="modal-overlay" id="sharing-modal-overlay" data-block="modal-overlay">
+  <div class="modal-dialog wide" id="sharing-modal" data-block="modal" role="dialog" aria-modal="true" aria-labelledby="sharing-modal-title">
+    <div class="modal-title" id="sharing-modal-header" data-block="modal-header"><span id="sharing-modal-title">Edit <%= m.label %></span><a class="modal-close" id="btn-modal-close" href="/policy/<%= policy.contractNo %>/advisor-change" title="Close">&times;</a></div>
+    <div class="modal-body" id="sharing-modal-body" data-block="modal-body">
+      <% if (modal.error) { %><div class="msg msg-error" id="modal-error-band" role="alert"><span class="msg-icon">&#10006;</span><span id="modal-error-message"><%= modal.error %></span></div><% } %>
+      <form method="post" action="/policy/<%= policy.contractNo %>/sharing/<%= t %>" id="form-sharing-<%= t %>">
+        <details class="section" open id="sec-sharing" data-block="section"><summary>Edit <%= m.label %></summary><div class="section-body" id="body-sharing" data-block="section-body">
+          <div class="scroll-x">
+          <div class="grid-block" id="grid-sharing-table" data-block="grid"><table class="grid share-grid" id="sharing-table">
+            <thead><tr>
+              <th style="width:22px"></th>
+              <% if (contribution) { %><th>Sale Event</th><% } %>
+              <th>Advisor Code</th><th>Primary Adviser</th>
+              <% cols.forEach(function (c) { %><th><%= c %></th><% }) %>
+              <th>Latest Indicator</th>
+            </tr></thead>
+            <tbody>
+              <% modal.current.forEach(function (r, i) { %>
+              <tr class="old-row" id="share-old-<%= i %>">
+                <td><input type="checkbox" disabled></td>
+                <% if (contribution) { %><td><select disabled><option><%= r.saleEvent %></option></select></td><% } %>
+                <td><select disabled><option><%= r.label %></option></select></td>
+                <td><select disabled><option><%= r.primary %></option></select></td>
+                <% r.v.forEach(function (v) { %><td><input type="text" class="num" value="<%= v %>" readonly></td><% }) %>
+                <td><select disabled><option>OLD</option></select></td>
+              </tr>
+              <% }) %>
+              <% modal.rows.forEach(function (r, i) { %>
+              <tr class="new-row" id="share-new-<%= i %>">
+                <td><input type="checkbox" name="rows[<%= i %>][sel]" id="share-select-<%= i %>" value="1"<%= r.sel ? ' checked' : '' %>><% if (!contribution) { %><input type="hidden" name="rows[<%= i %>][saleEvent]" value="ALL"><% } %></td>
+                <% if (contribution) { %><td><select name="rows[<%= i %>][saleEvent]" id="share-sale-event-<%= i %>"><% modal.saleEvents.forEach(function (o) { %><option<%= o === r.saleEvent ? ' selected' : '' %>><%= o %></option><% }) %></select></td><% } %>
+                <td><select name="rows[<%= i %>][advisor]" id="share-advisor-<%= i %>">
+                  <option value="">--Please Select--</option>
+                  <% modal.advisers.forEach(function (a) { %><option value="<%= a.partyCode %>"<%= a.partyCode === r.advisor ? ' selected' : '' %>><%= a.partyCode %>--&gt;<%= a.name %></option><% }) %>
+                </select></td>
+                <td><select name="rows[<%= i %>][primary]" id="share-primary-<%= i %>"><option value=""></option><option<%= r.primary === 'Yes' ? ' selected' : '' %>>Yes</option><option<%= r.primary === 'No' ? ' selected' : '' %>>No</option></select></td>
+                <% cols.forEach(function (c, k) { %><td><input type="text" class="num" name="rows[<%= i %>][v][<%= k %>]" id="share-<%= i %>-<%= k %>" value="<%= (r.v || [])[k] || '' %>"></td><% }) %>
+                <td><select disabled><option>NEW</option></select></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table></div>
+          </div>
+        </div></details>
+        <div class="btnbar button-bar" id="bar-sharing-rows" data-block="button-bar"><button class="btn" type="submit" name="op" value="add" id="btn-share-add">Add</button><button class="btn" type="submit" name="op" value="delete" id="btn-share-delete">Delete</button></div>
+        <div class="btnbar button-bar" id="bar-sharing-actions" data-block="button-bar" style="margin-top:14px"><button class="btn" type="submit" name="op" value="save" id="btn-share-save">Save</button><a class="btn" id="btn-share-close" href="/policy/<%= policy.contractNo %>/advisor-change">Close</a></div>
+      </form>
+    </div>
+  </div>
+</div>

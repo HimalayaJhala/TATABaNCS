@@ -1,0 +1,25 @@
+<%- include('partials/top') %>
+<% var p = policy, e = endorsement, a = (e && e.acceptance) || {}; var popup = '/policy/' + p.contractNo + '/acceptance/1'; %>
+<details class="section" open id="sec-contracting-party-acceptance" data-block="section"><summary>Contracting Party Acceptance</summary>
+<div class="section-body" id="body-contracting-party-acceptance" data-block="section-body">
+  <div class="grid-block" id="grid-acceptance-list" data-block="grid"><table class="grid" id="acceptance-list">
+    <thead><tr><th style="width:24px"></th><th>Serial No</th><th>Name</th><th>Acceptance</th><th>Acceptance Date</th></tr></thead>
+    <tbody>
+      <tr id="acceptance-row-1">
+        <td><input type="checkbox" id="acceptance-check-1"></td>
+        <td><a class="serial" id="acceptance-serial-1" href="<%= popup %>">1</a></td>
+        <td id="acceptance-name-1"><%= p.owner.firstName %> <%= p.owner.lastName %></td>
+        <td id="acceptance-value-1"><%= a.accepted || '' %></td>
+        <td id="acceptance-date-1"><%= a.date || '' %></td>
+      </tr>
+    </tbody>
+  </table></div>
+</div>
+</details>
+<div class="btnbar button-bar" id="bar-acceptance-actions" data-block="button-bar" style="margin-top:8px">
+  <a class="btn" id="btn-back" href="/policy/<%= p.contractNo %>/basic-details">Back</a>
+  <a class="btn" id="btn-continue" href="/policy/<%= p.contractNo %>/quote-summary">Continue</a>
+  <a class="btn" id="btn-acceptance" href="<%= popup %>">Acceptance</a>
+</div>
+<% if (typeof modal !== 'undefined') { %><%- include('partials/acceptance-modal') %><% } %>
+<%- include('partials/bottom') %>

@@ -1,0 +1,56 @@
+<%- include('partials/top') %>
+<div class="title-center" id="search-title"><%= book === 'closed' ? 'Quote/Contract/Voucher Search' : 'Quote/Contract Search' %></div>
+<form method="post" action="/policy-servicing/results" id="form-search" data-busy<%- hangMs.search ? ' data-hang-ms="' + hangMs.search + '"' : '' %>>
+<% var c = criteria;
+   var statuses = [['', '--Select--'], 'ACTIVE POLICY', 'DRAFT ENDORSEMENT QUOTE', 'FINAL ENDORSEMENT QUOTE', 'REJECTED ENDORSEMENT QUOTE', 'LAPSED']; %>
+<div class="search-box" id="block-search-criteria" data-block="form-frame">
+  <div class="fields" id="fields-search-criteria">
+    <%- F.field({ id: 'product', label: 'Product', control: F.input({ id: 'product', name: 'product', value: c.product || '' }) + ' ' + F.input({ id: 'product-description', readonly: true, cls: 'ro' }) + F.lookup('product-lookup') }) %>
+    <%- F.blank() %>
+    <%- F.field({ id: 'quote-no', label: 'Quote No.', control: F.input({ id: 'quote-no', name: 'quoteNo', value: c.quoteNo || '' }) }) %>
+    <%- F.field({ id: 'contract-no', label: 'Contract No.', control: F.input({ id: 'contract-no', name: 'contractNo', value: c.contractNo || '' }) }) %>
+    <%- F.field({ id: 'date-from', label: 'Date From', control: F.input({ id: 'date-from', name: 'dateFrom', value: c.dateFrom || '', date: true }) + F.cal() }) %>
+    <%- F.field({ id: 'date-to', label: 'Date To', control: F.input({ id: 'date-to', name: 'dateTo', value: c.dateTo || '', date: true }) + F.cal() }) %>
+    <%- F.field({ id: 'status', label: 'Status', control: F.select({ id: 'status', name: 'status', options: statuses, selected: c.status }) }) %>
+    <%- F.field({ id: 'party-code', label: 'Party Code', control: F.input({ id: 'party-code', name: 'partyCode', value: c.partyCode || '' }) + F.lookup('party-code-lookup') }) %>
+    <%- F.field({ id: 'party-stake-name', label: 'Party Stake Name', control: F.select({ id: 'party-stake-name', name: 'partyStakeName', options: ['', 'Contract Owner', 'Contribution Payer', 'Life Assured'], selected: c.partyStakeName }) }) %>
+    <%- F.blank() %>
+    <%- F.field({ id: 'parameter', label: 'Parameter', control: F.select({ id: 'parameter', name: 'parameter', options: ['', 'Exact match', 'Starts with', 'Contains'], selected: c.parameter }) }) %>
+    <%- F.blank() %>
+    <%- F.field({ id: 'branch-code', label: 'Branch Code', control: F.select({ id: 'branch-code', name: 'branchCode', options: ['ALL', 'HO'], selected: c.branchCode }) }) %>
+    <%- F.field({ id: 'id-no', label: 'ID No./Passport No./Registration No.', control: F.input({ id: 'id-no', name: 'idNo', value: c.idNo || '' }) }) %>
+  </div>
+</div>
+<div class="btnbar button-bar" id="bar-search-actions" data-block="button-bar" style="margin:6px 18px 0">
+  <button class="btn" type="submit" id="btn-search">Search</button>
+  <a class="btn" id="btn-clear" href="/policy-servicing/search">Clear</a>
+  <a class="btn" id="btn-back" href="/home">Back</a>
+</div>
+<div class="tip" id="search-tip" style="margin-top:0">Tip: Click Table Header to sort results</div>
+</form>
+<% if (results) { %>
+<div class="result-head" id="result-head" data-block="result-header"><span>Search Result Page: 1 &nbsp; Display Page: <input type="text" value="1" readonly><span class="enter-btn">&#8629;</span></span><span>Page Size: <select id="page-size"><option>10</option><option>20</option></select></span></div>
+<div class="grid-block" id="grid-search-results" data-block="grid">
+<table class="grid results" id="search-results">
+  <thead><tr><th>Quote/ Contract No</th><th>Contract Owner Name</th><th>ID No.</th><th>Product</th><th>Status</th><th>Start Date</th><th>Expiry Date</th><th>Endr Date</th><th>Cover Amount</th><th>REPL</th></tr></thead>
+  <tbody>
+  <% if (!results.length) { %><tr><td colspan="10" class="empty" id="no-results"><%= book === 'closed' ? 'No Result Found' : 'No records found.' %></td></tr><% } %>
+  <% results.forEach(function (p) { %>
+    <tr id="result-row-<%= p.contractNo %>">
+      <td><a class="hl" id="result-link-<%= p.contractNo %>" href="/policy/<%= p.contractNo %>?ctx=policy"><%= p.contractNo %></a></td>
+      <td class="owner-name"><%= p.owner.firstName %> <%= p.owner.lastName %></td>
+      <td class="id-no" id="result-id-<%= p.contractNo %>"><%= p.owner.idNumber %></td>
+      <td><%= p.productName %></td>
+      <td class="status" id="result-status-<%= p.contractNo %>"><%= p.status %></td>
+      <td><%= p.startDate %></td>
+      <td><%= p.expiryDate %></td>
+      <td><%= p.endrDate || '-' %></td>
+      <td class="r"><%= Number(p.coverAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+      <td></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<% } %>
+<%- include('partials/bottom') %>

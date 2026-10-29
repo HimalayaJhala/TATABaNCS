@@ -1,0 +1,158 @@
+<%- include('partials/top') %>
+<% var cc = endorsement.calc || null;
+   var num = function (v, d) { return v == null || v === '' ? '' : Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+   var m2 = function (v) { return num(v, 2); }, m3 = function (v) { return num(v, 3); };
+   var shown = function (v) { return cc ? m2(v) : ''; }; %>
+<% var p = policy, e = endorsement, id = p.contractNo, o = p.owner, b = p.basic, c = p.commission;
+   var ro = function (label, value) {
+     var id = 'bs-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+     return F.field({ id: id, label: label, control: F.input({ id: id, value: value == null ? '' : value, readonly: true }) });
+   }; %>
+<% /* Read-only summary first; the action bar sits at the bottom, so every step needs a scroll (SOP). */ %>
+<details class="section" open id="sec-basic-summary" data-block="section"><summary>Basic Summary</summary>
+<div class="section-body" id="body-basic-summary" data-block="section-body">
+  <div class="fields" id="fields-basic-summary">
+    <%- ro('Quote Instance Number', b.quoteInstanceNumber) %>
+    <%- ro('Segment', b.segment) %>
+    <%- ro('Distribution Channel', b.distributionChannel) %>
+    <%- ro('Adviser Party Code', b.adviserPartyCode) %>
+    <%- ro('Sales Code', b.salesCode) %>
+    <%- ro('Sales Code Type', b.salesCodeType) %>
+    <%- ro('Quote Expiry Date', b.quoteExpiryDate) %>
+    <%- ro('Quote Date', b.quoteDate) %>
+    <%- ro('Contracting Party First Name', o.firstName) %>
+    <%- ro('Contracting Party Code', o.partyCode) %>
+    <%- ro('Contracting Party Last Name', o.lastName) %>
+    <%- ro('Identity Type Number', o.idNumber) %>
+    <%- ro('Savings Need', b.savingsNeed) %>
+    <%- ro('Policy Start Date', b.policyStartDate) %>
+    <%- ro('Next Policy Anniversary Date', b.nextPolicyAnniversaryDate) %>
+    <%- ro('Investment Term in months', b.investmentTermMonths) %>
+    <%- ro('Market Value', b.marketValue) %>
+    <%- ro('Outstanding ZIL Amount', '') %>
+    <%- ro('Maturity Date', b.maturityDate) %>
+    <%- ro('Gross Yield Percentage', b.grossYield) %>
+  </div>
+</div>
+</details>
+
+<details class="section" open id="sec-contribution-details-summary" data-block="section"><summary>Contribution Details Summary</summary>
+<div class="section-body" id="body-contribution-details-summary" data-block="section-body">
+  <div class="scroll-x"><div class="grid-block" id="grid-contribution-details-summary" data-block="grid"><table class="grid">
+    <thead><tr><th>Lumpsum Contribution Collection Date</th><th>Type of Contribution</th><th>Contracting Party Full Name/Organization Name</th><th>Contribution Reference Number</th><th>Regular Contribution Start Date</th><th>Regular Contribution Cease Date</th><th>Contribution Amount</th><th>Method of Payment</th><th>Annual Contribution Increase Option</th><th>Method of Transfer</th><th>Transfer In Type</th><th>Transfer Source</th><th>First Contribution Start Date</th><th>Final Considered Investment Amount</th></tr></thead>
+    <tbody><tr><td>NA</td><td><%= p.contribution.type %></td><td><%= o.title %> <%= o.firstName %> <%= o.middleName %> <%= o.lastName %></td><td><%= p.contribution.reference %></td><td><%= p.contribution.startDate %></td><td><%= p.contribution.ceaseDate %></td><td class="r"><%= p.contribution.amount %></td><td><%= p.contribution.method %></td><td><%= p.contribution.increase %></td><td>NA</td><td>NA</td><td>NA</td><td>NA</td><td>NA</td></tr></tbody>
+  </table></div></div>
+</div>
+</details>
+
+<details class="section" open id="sec-benefit-summary" data-block="section"><summary>Benefit Summary</summary>
+<div class="section-body" id="body-benefit-summary" data-block="section-body">
+  <div class="scroll-x"><div class="grid-block" id="grid-benefit-summary" data-block="grid"><table class="grid">
+    <thead><tr><th>Serial No</th><th>Benefit Type</th><th>Benefit Name</th><th>Life Covered Full Name</th><th>Cover Amount</th><th>Underwriting Option</th><th>Benefit Start Date</th><th>Cover Start Date</th><th>Benefit Duration</th><th>Manual Loading Type Percentage</th><th>Manual Loading Pattern Percentage</th><th>Manual Loading Value Percentage</th><th>Standard Life Premium</th></tr></thead>
+    <tbody><tr><td>1</td><td>Standalone</td><td><%= c.benefitName %></td><td>Same as parent benefit</td><td>Not Applicable</td><td></td><td></td><td></td><td></td><td class="r">0.00</td><td class="r">0.00</td><td class="r">0.00</td><td class="r">0.00</td></tr></tbody>
+  </table></div></div>
+</div>
+</details>
+
+<details class="section" open id="sec-contribution-payer-summary" data-block="section"><summary>Contribution Payer Summary</summary>
+<div class="section-body" id="body-contribution-payer-summary" data-block="section-body">
+  <div class="scroll-x"><div class="grid-block" id="grid-contribution-payer-summary" data-block="grid"><table class="grid">
+    <thead><tr><th>Premium Payer Party Code</th><th>Premium Payer Full Name/Organization Name</th><th>Premium Payer Date of Birth</th><th>Identity Type</th><th>Identity Type Number</th><th>Premium to Be Paid</th><th>Account Number</th><th>Bank Name</th><th>Account Type</th><th>Branch Code</th><th>Account Holder Name</th><th>Bundle Premium</th><th>Pay Office Code</th></tr></thead>
+    <tbody><tr><td><%= o.partyCode %></td><td><%= o.firstName %> <%= o.middleName %> <%= o.lastName %></td><td><%= o.dob %></td><td>National ID</td><td><%= o.idNumber %></td><td class="r"><%= p.contribution.amount %></td><td></td><td></td><td></td><td></td><td></td><td class="r">0</td><td></td></tr></tbody>
+  </table></div></div>
+</div>
+</details>
+
+<details class="section" open id="sec-commission-summary" data-block="section"><summary>Commission Summary at Benefit Level for selected Commission Type</summary>
+<div class="section-body" id="body-commission-summary" data-block="section-body">
+  <div class="scroll-x"><div class="grid-block" id="grid-commission-summary" data-block="grid"><table class="grid" id="commission-summary">
+    <thead><tr><th>Benefit Name</th><th>Type of Commission</th><th>Immediate Commission Percentage</th><th>Ongoing (AAW) Commission Percentage</th><th>Primary Upfront Commission Payable</th><th>Secondary Upfront Commission Payable</th><th>Commission Payable each time a Premium is paid</th><th>Commission Payable immediately</th><th>Commission Scaling percentage</th><th>Distribution Fee Scaling percentage</th></tr></thead>
+    <tbody><tr><td><%= c.benefitName %></td><td><%= c.type %></td>
+      <td class="r" id="cs-immediate-pct"><%= cc ? m2(cc.commissionSummary.immediatePct) : '' %></td>
+      <td class="r" id="cs-ongoing-pct"><%= cc ? m3(cc.commissionSummary.ongoingPct) : '' %></td>
+      <td class="r" id="cs-primary-upfront"><%= cc ? m2(cc.commissionSummary.primaryUpfront) : '' %></td>
+      <td class="r" id="cs-secondary-upfront"><%= cc ? m2(cc.commissionSummary.secondaryUpfront) : '' %></td>
+      <td class="r" id="cs-each-premium"><%= cc ? m2(cc.commissionSummary.eachPremium) : '' %></td>
+      <td class="r" id="cs-immediately"><%= cc ? m2(cc.commissionSummary.immediately) : '' %></td>
+      <td class="r"><%= c.scalingPct %></td><td class="r"><%= c.distributionFeeScalingPct %></td></tr></tbody>
+  </table></div></div>
+</div>
+</details>
+
+<details class="section" open id="sec-ebq-summary" data-block="section"><summary>EBQ Summary</summary>
+<div class="section-body" id="body-ebq-summary" data-block="section-body">
+  <div class="scroll-x"><div class="grid-block" id="grid-ebq-summary" data-block="grid"><table class="grid" id="ebq-summary">
+    <thead><tr><th>Endorsement Effective Date</th><th>Endorsement Type</th><th>Endorsement Quote Instance Number</th><th>Case id</th><th>CARMA Grouping Key</th><th>Requester Stake Code</th><th>Requester Code</th><th>Admin Quote</th><th>Waiver Number</th><th>Admin Quote Status</th><th>Total Endorsement Premium including Cashback</th><th>Total Endorsement Commission Amount</th><th>Endorsement Premium Refund Amount</th><th>Endorsement Clawback Commission Amount</th><th>Endorsement Premium Collection Amount</th><th>Bizagi EBA Case Id</th><th>CARMA UWR Grouping Key</th><th>Estimated CGT</th><th>MVA Fees</th><th>Reason for initiating this action</th></tr></thead>
+    <tbody><tr><td><%= e.effectiveDate %></td><td><%= e.types.join(', ') %></td><td><%= e.instanceNumber %></td><td><%= e.bizagiCaseId %></td><td><%= e.carmaKey %></td><td>CON-OWNER</td><td><%= o.partyCode %></td><td>No</td><td></td><td></td>
+      <td class="r" id="ebq-total-premium"><%= shown(cc && cc.premium) %></td>
+      <td class="r" id="ebq-commission"><%= shown(cc && cc.commission) %></td>
+      <td class="r" id="ebq-refund"><%= shown(cc && cc.refund) %></td>
+      <td class="r" id="ebq-clawback"><%= shown(cc && cc.clawback) %></td>
+      <td class="r" id="ebq-collection"><%= shown(cc && cc.collection) %></td>
+      <td></td><td></td>
+      <td class="r" id="ebq-cgt"><%= shown(cc && cc.cgt) %></td>
+      <td class="r" id="ebq-mva"><%= shown(cc && cc.mva) %></td>
+      <td><%= e.reason || '' %></td></tr></tbody>
+  </table></div></div>
+</div>
+</details>
+
+<details class="section" open id="sec-eac-details" data-block="section"><summary>EAC Details</summary>
+<div class="section-body" id="body-eac-details" data-block="section-body">
+  <div class="grid-block" id="grid-eac-details" data-block="grid"><table class="grid" id="eac-details">
+    <thead><tr><th>Category</th><% [1, 2, 3, 4].forEach(function (k) { %><th id="eac-head-<%= k %>"<%- cc ? ' title="Year ' + cc.eac.years[k - 1] + '"' : '' %>>Milestone <%= k %></th><% }) %></tr></thead>
+    <tbody><% ['Investment', 'Advice', 'Admin', 'Other', 'EAC'].forEach(function (r) { %><tr id="eac-row-<%= r.toLowerCase() %>"><td><%= r %></td><% [0, 1, 2, 3].forEach(function (k) { %><td class="r" id="eac-<%= r.toLowerCase() %>-<%= k + 1 %>"><%= cc ? m2(cc.eac.rows[r][k]) : '' %></td><% }) %></tr><% }) %></tbody>
+  </table></div>
+</div>
+</details>
+
+<details class="section" open id="sec-applicable-tax-class" data-block="section"><summary>Applicable Tax Class</summary>
+<div class="section-body" id="body-applicable-tax-class" data-block="section-body">
+  <div class="grid-block" id="grid-applicable-tax-class" data-block="grid"><table class="grid"><thead><tr><th>Product Name</th><th>Product Wrapper</th><th>Applicable Tax Class</th></tr></thead>
+    <tbody><tr><td><%= p.productCode %></td><td><%= p.wrapper %></td><td><%= p.taxClass %></td></tr></tbody></table></div>
+</div>
+</details>
+
+<details class="section" open id="sec-ebq-fees-details" data-block="section"><summary>EBQ Fees Details</summary>
+<div class="section-body" id="body-ebq-fees-details" data-block="section-body">
+  <div class="grid-block" id="grid-ebq-fees-details" data-block="grid"><table class="grid"><thead><tr><th>Reduction fee</th><th>Transaction admin fee</th></tr></thead>
+    <tbody><tr><td class="r" id="fee-reduction"><%= cc ? num(cc.reductionFee, 0) : '' %></td><td class="r" id="fee-transaction-admin"><%= shown(cc && cc.transactionAdminFee) %></td></tr></tbody></table></div>
+</div>
+</details>
+
+<details class="section" id="sec-calculation-basis" data-block="section"><summary>Premium Calculation Basis</summary>
+<div class="section-body" id="body-calculation-basis" data-block="section-body">
+  <% if (!cc) { %><div class="grid-block" id="grid-calculation-basis" data-block="grid"><table class="grid"><tbody><tr><td class="empty">Calculate Premium has not been run for this endorsement.</td></tr></tbody></table></div>
+  <% } else { %>
+  <% if (cc.stale) { %><div class="msg msg-error" id="calc-stale-note"><span class="msg-icon">&#10006;</span><span>The VAT Inclusive Asset Advice Fee was changed after Calculate Premium. The figures above are out of date: click Calculate Premium again.</span></div><% } %>
+  <div class="grid-block" id="grid-calculation-basis" data-block="grid"><table class="grid" id="calculation-basis">
+    <thead><tr><th>Step</th><th>Working</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Market value</td><td>Policy market value at the effective date</td><td class="r" id="cb-market-value"><%= m2(cc.marketValue) %></td></tr>
+      <tr><td>VAT Inclusive fee, before and after</td><td>Fee now, and the fee after this endorsement (%)</td><td class="r" id="cb-fee"><%= m3(cc.feeBefore) %> &rarr; <%= m3(cc.feeAfter) %></td></tr>
+      <tr><td>VAT Exclusive fee, before and after</td><td>VAT Inclusive &divide; 1.15 (%)</td><td class="r"><%= m3(cc.feeExclBefore) %> &rarr; <%= m3(cc.feeExclAfter) %></td></tr>
+      <tr><td>Fee a year, before and after</td><td>Market value &times; fee %</td><td class="r" id="cb-annual"><%= m2(cc.annualBefore) %> &rarr; <%= m2(cc.annualAfter) %></td></tr>
+      <tr><td>Fee a month, before and after</td><td>Fee a year &divide; 12</td><td class="r" id="cb-monthly"><%= m2(cc.monthlyBefore) %> &rarr; <%= m2(cc.monthlyAfter) %></td></tr>
+      <tr><td>Fee period</td><td>Previous due date to next due date</td><td class="r" id="cb-period"><%= cc.period.previousDue %> &rarr; <%= cc.period.nextDue %> (<%= cc.period.days %> days)</td></tr>
+      <tr><td>Days left in the period</td><td>Next due date less the effective date <%= cc.effectiveDate %></td><td class="r" id="cb-remaining"><%= cc.period.remaining %></td></tr>
+      <tr><td>Monthly fee difference</td><td>Fee a month before less after</td><td class="r"><%= m2(cc.difference) %></td></tr>
+      <tr><td>Refund to the client</td><td>Difference &times; days left &divide; days in period</td><td class="r" id="cb-refund"><%= m2(cc.refund) %></td></tr>
+      <tr><td>Collection from the client</td><td>Applies when the fee rises</td><td class="r" id="cb-collection"><%= m2(cc.collection) %></td></tr>
+      <tr><td>Commission clawback</td><td>Refund &divide; 1.15 &times; commission scaling <%= cc.commissionSummary.scalingPct %>%</td><td class="r" id="cb-clawback"><%= m2(cc.clawback) %></td></tr>
+      <tr><td>Adviser commission, rest of period</td><td>New fee a month &divide; 1.15 &times; days left &divide; days in period</td><td class="r" id="cb-commission"><%= m2(cc.commission) %></td></tr>
+      <tr><td>Milestones (years)</td><td>EAC is measured at these points, as Milestone 1 to 4</td><td class="r" id="cb-milestones"><%= cc.eac.years.join(', ') %></td></tr>
+    </tbody>
+  </table></div>
+  <% } %>
+</div>
+</details>
+
+<div class="action-bar bottom" id="action-bar" data-block="action-bar">
+  <%- include('partials/bar', { bar: bar, contractNo: id, returnTo: null }) %>
+  <div class="btnbar button-bar" id="bar-summary-navigation" data-block="button-bar">
+    <a class="btn" id="btn-back" href="/policy/<%= id %>">Back</a>
+    <a class="btn" id="btn-continue" href="/policy/<%= id %>/quote-submission">Continue</a>
+    <form method="post" action="/policy/<%= id %>/quote-summary/premium-projection"><button class="btn" type="submit" id="btn-premium-projection">Premium Projection</button></form>
+  </div>
+</div>
+<%- include('partials/bottom') %>
