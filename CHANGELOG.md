@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: no seeded endorsement quotes on the dummy work list contracts
+
+- Removed the seeded quote history from 119900001001 (serials 1 to 3, copied from the recording) and from 110671307001 and 112333103001 (one approved quote each). 102790002001 had none.
+- Endorsement Quotes on these contracts is now empty until a run creates serial 1, for example `1199000010010001`.
+- The seeded quotes behind the 56000 cases (113901377001, 114020658001) are unchanged.
+
 ## 2026-10-29: loading time and Quote Summary loading layout
 
 - **A step now loads for whichever is longer: the real response or the configured latency.** They used to be added together.

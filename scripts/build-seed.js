@@ -55,8 +55,8 @@ const ADVISERS = {
 const ROWS = [
   // ---- single adviser, non-zero fee: the happy path --------------------------------------------
   ['119900001001', 'LISP', 'NOKUTHULA', 'JANE', 'MAHLOBO', 'F', '14/09/1986', 0.50, 'happy', [['699001', 100]], 600, 240, 12.48, '30/01/2026', false],
-  ['110671307001', 'TFI', 'SIPHO', 'ANDILE', 'KHUMALO', 'M', '14/03/1979', 1.00, 'happy', [['694653', 100]], 2500, 240, 100.69, '12/02/2024', true],
-  ['112333103001', 'LISP', 'THANDEKA', 'GRACE', 'ZULU', 'F', '22/11/1990', 0.75, 'happy', [['657110', 100]], 1200, 180, 41.07, '03/05/2024', true],
+  ['110671307001', 'TFI', 'SIPHO', 'ANDILE', 'KHUMALO', 'M', '14/03/1979', 1.00, 'happy', [['694653', 100]], 2500, 240, 100.69, '12/02/2024', false],
+  ['112333103001', 'LISP', 'THANDEKA', 'GRACE', 'ZULU', 'F', '22/11/1990', 0.75, 'happy', [['657110', 100]], 1200, 180, 41.07, '03/05/2024', false],
   ['112953094001', 'TFI', 'RIAAN', 'PIETER', 'STEYN', 'M', '02/07/1972', 0.50, 'happy', [['631710', 100]], 3000, 240, 0.19, '18/09/2024', false],
   ['113162231001', 'LISP', 'AYESHA', 'FATIMA', 'PATEL', 'F', '19/09/1988', 1.25, 'happy', [['631631', 100]], 4500, 300, 7.62, '07/01/2025', true],
   ['113165622001', 'LISP', 'KAGISO', 'THABO', 'MOLEFE', 'M', '05/05/1983', 1.00, 'happy', [['630174', 100]], 1500, 180, 63.35, '09/01/2025', false],
@@ -233,11 +233,9 @@ ROWS.forEach((r, i) => {
   }
 });
 
+// The contracts on the dummy work list (119900001001, 102790002001, 110671307001, 112333103001) start with no
+// endorsement quotes, so Endorsement Quotes only ever shows what a run created.
 endorsements.push(
-  // Policy A, as in the recording: one approved, two rejected attempts. The demo creates serial 4.
-  historic('119900001001', 1, 'Automatic Contribution Schedule Termination', '09/06/2026'),
-  historic('119900001001', 2, 'Change Advisor Details', '04/08/2026', 'REJECTED ENDORSEMENT QUOTE', ''),
-  historic('119900001001', 3, 'Change Advisor Details', '04/08/2026', 'REJECTED ENDORSEMENT QUOTE', ''),
   // 56000 scenarios: a finalised endorsement effective 01/11/2026, and an open draft
   historic('113901377001', 1, 'Change Premium Collection Day', '01/11/2026'),
   historic('114020658001', 1, 'Update Contribution Details', '04/08/2026', 'DRAFT ENDORSEMENT QUOTE', 'Sub-Endorsement Started')

@@ -256,15 +256,7 @@ Mirror the structure, the codes, the amounts and the statuses exactly. Replace o
 | Requester Stake Code | CON-OWNER |
 | Endorsement Quote Instance Number | 99999 |
 
-Seed policy A's endorsement history so the Endorsement Quotes list looks lived-in rather than empty on first open:
-
-| Serial | Endr Quotation Number | Type of Endorsement | Effective Date | Status |
-| --- | --- | --- | --- | --- |
-| 1 | 1199000010010001 | Automatic Contribution Schedule Termination | 09/06/2026 | FINAL ENDORSEMENT QUOTE |
-| 2 | 1199000010010002 | Change Adviser Details | 04/08/2026 | REJECTED ENDORSEMENT QUOTE |
-| 3 | 1199000010010003 | Change Adviser Details | 04/08/2026 | REJECTED ENDORSEMENT QUOTE |
-
-The serial the demo creates becomes 4. Two prior rejections on the same policy is true to the recording and makes the point that this is not a one-click process today.
+Policy A, and every other contract on the dummy work list, starts with no endorsement quotes. Endorsement Quotes stays empty until a run creates serial 1 (`1199000010010001`), so the list only ever shows what was actually done in the demo. The recording's history (one approved quote and two rejected Change Adviser Details quotes before the one being worked) is deliberately not seeded.
 
 ### Bizagi queue rows
 

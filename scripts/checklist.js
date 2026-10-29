@@ -142,7 +142,7 @@ async function accept(p, contract, date) {
   await step(p, '#nav-endr-quote-summary');
   const vis = await p.$eval('#endorsement-action-bar', e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
   ok(vis, 'the action bar is pinned in view on load, without scrolling');
-  const r = await fetch(`${DATA}/policies/${C}/endorsements/4/actions/lock-ebq`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json());
+  const r = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/lock-ebq`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json());
   ok(r.error && r.error.code === 30404, `server rejects Lock EBQ posted out of order: ${r.error && r.error.code}`);
   const expect = [
     ['#btn-create-refresh-layer', ['btn-create-refresh-layer']],
@@ -179,14 +179,14 @@ async function accept(p, contract, date) {
 
   ok((await enabledBar(p)).join(',') === 'btn-reject-endorsed-quote,btn-follow-up-report', 'a submitted quote shows Reject Endorsed Quote and Follow up report on the summary');
   const verifyMail = (await (await fetch(DATA + '/mail?to=dvisser')).json())[0];
-  ok(verifyMail && verifyMail.kind === 'verify' && verifyMail.contractNo === C && verifyMail.serial === 4, 'Submit hands the case to the Checker: a verification email arrives in their mailbox');
+  ok(verifyMail && verifyMail.kind === 'verify' && verifyMail.contractNo === C && verifyMail.serial === 1, 'Submit hands the case to the Checker: a verification email arrives in their mailbox');
   await mailPage.goto(`http://localhost:4001/mail?user=dvisser&open=${verifyMail.id}`);
-  ok(((await text(mailPage, '#message-subject')) || '').includes('Please verify') && (await text(mailPage, '#case-quote')) === '1199000010010004' && (await text(mailPage, '#case-d-id')) === listId, 'the email names the quote and gives the ID number to check against');
+  ok(((await text(mailPage, '#message-subject')) || '').includes('Please verify') && (await text(mailPage, '#case-quote')) === '1199000010010001' && (await text(mailPage, '#case-d-id')) === listId, 'the email names the quote and gives the ID number to check against');
 
   // Capturer cannot activate
   await step(p, '#hdr-policy-number');
   await step(p, '#nav-endorsement-quotes');
-  await step(p, '#endr-serial-4');
+  await step(p, '#endr-serial-1');
   await step(p, '#nav-endr-quote-submission');
   await step(p, '#btn-activate');
   const sod = await text(p, '#error-message');
@@ -202,8 +202,8 @@ async function accept(p, contract, date) {
   await step(v, `#result-link-${C}`);
   ok(!(await v.$('#nav-authorization')), 'no Authorization item: the SOP goes straight to Endorsement Quotes');
   await step(v, '#nav-endorsement-quotes');
-  ok((await text(v, '#endr-row-4 .endr-type')) === 'Change Advisor Details', 'serial 4 is Change Advisor Details');
-  await step(v, '#endr-serial-4');
+  ok((await text(v, '#endr-row-1 .endr-type')) === 'Change Advisor Details', 'serial 1 is Change Advisor Details');
+  await step(v, '#endr-serial-1');
   await step(v, '#nav-endr-quote-submission');
   ok((await text(v, '#hdr-sub-status')) === 'Endorsement Submitted', 'status shows Endorsement Submitted');
   await step(v, '#btn-activate');

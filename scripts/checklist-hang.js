@@ -64,7 +64,7 @@ async function walk(browser, expect) {
   await p.goto(`${B}/policy/${C}/basic-details`);
   await p.click('#vat-inclusive-asset-advice-fee', { clickCount: 3 }); await p.type('#vat-inclusive-asset-advice-fee', '0');
   await run('basicSave', p, cdp, '#btn-save');
-  await api('PUT', `/policies/${C}/endorsements/4/acceptance`, { user: 'nzwane', accepted: 'Yes', date: '04/08/2026' });   // Finalise needs the acceptance (no latency of its own)
+  await api('PUT', `/policies/${C}/endorsements/1/acceptance`, { user: 'nzwane', accepted: 'Yes', date: '04/08/2026' });   // Finalise needs the acceptance (no latency of its own)
   await p.goto(`${B}/policy/${C}/quote-summary`);
   for (const [key, sel] of [['createLayer', '#btn-create-refresh-layer'], ['calcPremium', '#btn-calculate-premium'], ['endSub', '#btn-end-sub-endorsement'], ['lockEbq', '#btn-lock-ebq'], ['finalise', '#btn-finalise-endorsement']]) await run(key, p, cdp, sel);
   await p.goto(`${B}/policy/${C}/quote-submission`);
@@ -76,7 +76,7 @@ async function walk(browser, expect) {
   const qcdp = await q.createCDPSession();
   await login(q, 'dvisser');
   await q.goto(`${B}/policy/${C}/endorsement-quotes`);
-  await Promise.all([q.waitForNavigation(), q.click('#endr-serial-4')]);
+  await Promise.all([q.waitForNavigation(), q.click('#endr-serial-1')]);
   await q.goto(`${B}/policy/${C}/quote-submission`);
   await run('activate', q, qcdp, '#btn-activate');
   await p.close(); await q.close();

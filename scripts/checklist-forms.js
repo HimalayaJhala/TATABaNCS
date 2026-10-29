@@ -40,7 +40,7 @@ async function search(p, fields) {
   r = await search(p, { '#status': 'DRAFT ENDORSEMENT QUOTE' });
   ok(r.join() === '114020658001', `Status DRAFT ENDORSEMENT QUOTE finds the policy with an open draft (${r.join()})`);
   r = await search(p, { '#status': 'REJECTED ENDORSEMENT QUOTE' });
-  ok(r.join() === '119900001001', `Status REJECTED ENDORSEMENT QUOTE finds the policy with rejected quotes (${r.join()})`);
+  ok(r.length === 0, `Status REJECTED ENDORSEMENT QUOTE finds nothing until a quote is rejected (${r.join()})`);
   r = await search(p, { '#status': 'ACTIVE POLICY', '#branch-code': 'HO' });
   const total = (await (await fetch(DATA + '/policies?status=ACTIVE%20POLICY')).json()).length;
   ok(r.length === total && total >= 20, `Status ACTIVE POLICY + Branch HO returns all ${r.length} of ${total} policies`);
@@ -70,7 +70,7 @@ async function search(p, fields) {
   ok(p.url().endsWith(`/policy/${C}`) && await p.$('#endorse-modal') === null, 'a valid future date saves the endorsement');
   await step(p, '#hdr-policy-number');
   await step(p, '#nav-endorsement-quotes');
-  const eff = await text(p, '#endr-row-4 td:nth-child(5)');
+  const eff = await text(p, '#endr-row-1 td:nth-child(5)');
   ok(eff === '30/11/2026', `Endorsement Quotes shows the later effective date: ${eff}`);
 
   // ---- Basic Details dropdowns ----
@@ -165,7 +165,7 @@ async function search(p, fields) {
   await step(p, '#nav-endr-quote-summary'); await step(p, '#btn-create-refresh-layer'); await step(p, '#btn-calculate-premium');
   const tip = await p.$eval('#btn-lock-ebq', e => e.title);
   ok(tip.includes('End Sub Endorsement'), `a greyed Lock EBQ explains itself on hover: "${tip}"`);
-  const post = (action) => fetch(`${DATA}/policies/${C}/endorsements/4/actions/${action}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
+  const post = (action) => fetch(`${DATA}/policies/${C}/endorsements/1/actions/${action}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
   let r1 = await post('lock-ebq');
   ok(r1.error && r1.error.code === 30404 && r1.error.message.includes('The next step is End Sub Endorsement'), 'Lock EBQ too early names the step to take first');
   await step(p, '#btn-end-sub-endorsement');
@@ -229,7 +229,7 @@ async function search(p, fields) {
   await v.goto(`${B}/policy-servicing/search`); await v.type('#contract-no', C);
   const chkSearch = await timed(() => step(v, '#btn-search'));
   ok(chkSearch < 900, `the Checker's search does not wait its 1 s (${chkSearch} ms)`);
-  await v.goto(`${B}/policy/${C}?ctx=policy`); await step(v, '#nav-endorsement-quotes'); await step(v, '#endr-serial-4'); await step(v, '#nav-endr-quote-submission');
+  await v.goto(`${B}/policy/${C}?ctx=policy`); await step(v, '#nav-endorsement-quotes'); await step(v, '#endr-serial-1'); await step(v, '#nav-endr-quote-submission');
   steps.activate = await timed(() => step(v, '#btn-activate'));
   ok(steps.activate < 900 && (await text(v, '#hdr-sub-status')) === 'Approved Endorsed Quote', `the Checker's Activate does not wait its configured 1 s (${steps.activate} ms)`);
   await v.close();
@@ -441,7 +441,7 @@ async function search(p, fields) {
   await p.$eval('#sec-calculation-basis', d => { d.open = true; });
   const enabledNow = await p.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id));
   ok(await p.$('#calc-stale-note') !== null && enabledNow.includes('btn-calculate-premium') && !enabledNow.includes('btn-end-sub-endorsement'), 'after the fee is changed the page says the figures are out of date, Calculate Premium opens again and End Sub Endorsement waits');
-  const endSub = await fetch(`${DATA}/policies/${C}/endorsements/4/actions/end-sub-endorsement`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
+  const endSub = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/end-sub-endorsement`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
   ok(endSub.error && endSub.error.code === 30411, `the server refuses End Sub Endorsement on out-of-date figures: ${endSub.error && endSub.error.code}`);
   await step(p, '#btn-calculate-premium');
   ok(await p.$('#calc-stale-note') === null && (await cell('ebq-refund')) === '1.13' && (await p.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id))).includes('btn-end-sub-endorsement'), 'calculating again clears it: refund 1.13 for a fee of 0.200, and End Sub Endorsement is available');
@@ -489,7 +489,7 @@ async function search(p, fields) {
   await fetch(`${DATA}/policies/${C}/endorsements`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane', types: ['Change Advisor Details'] }) });
   const latencyBefore = JSON.stringify(await (await fetch(DATA + '/settings')).json());
   const endorsementCount = async () => (await (await fetch(`${DATA}/policies/${C}`)).json()).endorsements.length;
-  ok(await endorsementCount() === 4, 'the demo saves what you do: policy A now has a fourth endorsement');
+  ok(await endorsementCount() === 1, 'the demo saves what you do: policy A now has the endorsement just created');
   await p.goto(B + '/login');
   await p.click('#btn-dev-menu');
   await p.waitForSelector('#demo-controls', { visible: true });
@@ -497,10 +497,10 @@ async function search(p, fields) {
   p.once('dialog', d => d.dismiss());
   await p.click('#btn-reset-data');
   await new Promise(r => setTimeout(r, 400));
-  ok(await endorsementCount() === 4, 'cancelling the confirmation resets nothing');
+  ok(await endorsementCount() === 1, 'cancelling the confirmation resets nothing');
   p.once('dialog', d => d.accept());
   await Promise.all([p.waitForNavigation(), p.click('#btn-reset-data')]);
-  ok(await endorsementCount() === 3, 'confirming resets the data: policy A is back to its three seeded endorsements');
+  ok(await endorsementCount() === 0, 'confirming resets the data: policy A is back to no endorsements');
   ok(((await text(p, '#info-message')) || '').includes('reset'), `the login page says so: "${await text(p, '#info-message')}"`);
   ok(JSON.stringify(await (await fetch(DATA + '/settings')).json()) === latencyBefore, 'the latency table is kept by a reset');
 

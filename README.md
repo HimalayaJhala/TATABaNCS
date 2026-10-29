@@ -217,7 +217,7 @@ Save on the Acceptance screen and the other saves not in this table have no wait
 | Client | NOKUTHULA JANE MAHLOBO (fictional), ID `8609144417086`, declaration signed 04/08/2026 |
 | Fee | 0.575 VAT inclusive → 0.500 VAT exclusive (an advice fee of 0.50% a year, ex-VAT) |
 | Contribution | R600.00 a month, of which R10.35 is deducted (1.725%) |
-| Endorsement history | serials 1–3 as in the recording; the demo creates serial 4 |
+| Endorsement history | none at the start: Endorsement Quotes is empty until a run creates serial 1 (the same for every contract on the dummy work list) |
 
 ## Opening screens
 

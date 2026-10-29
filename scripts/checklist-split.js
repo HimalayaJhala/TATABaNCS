@@ -125,7 +125,7 @@ async function fill(p, i, advisor, primary, vals) {
   const v = await (await browser.createBrowserContext()).newPage(); await v.setViewport({ width: 1280, height: 720 });
   await v.goto(B + '/login'); await v.select('#login-user', 'dvisser'); await step(v, '#btn-login');
   await v.goto(`${B}/policy/${C}?ctx=policy`); await step(v, '#nav-endorsement-quotes');
-  await step(v, '#endr-serial-4'); await step(v, '#nav-endr-quote-submission'); await step(v, '#btn-activate');
+  await step(v, '#endr-serial-1'); await step(v, '#nav-endr-quote-submission'); await step(v, '#btn-activate');
   ok((await text(v, '#hdr-sub-status')) === 'Approved Endorsed Quote', `activated: ${await hdr(v)}`);
   const after = await (await fetch(`${DATA}/policies/${C}`)).json();
   ok(after.advisers.length === 2 && after.advisers.find(a => a.partyCode === A1).share === 50 && after.advisers.find(a => a.partyCode === A2).share === 50 && after.advisers.find(a => a.partyCode === A1).primary, 'policy now has the 50/50 split with the first adviser primary');
