@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: left menu greys sections only while the quote is a draft
+
+- Basic Details, Adviser Info and Advisor Change are greyed for Change Advisor Details only while the quote is DRAFT ENDORSEMENT QUOTE.
+- Once the quote is finalised the menu is plain, which is what the Checker sees in the SOP (picture 23, after Activate) and in the recording. Before this, the Checker also saw them greyed.
+- SOP pictures 24 and 25 show a different policy (OMP Family Funeral, 101600509001), so their menu is the funeral product's and isn't copied.
+
 ## 2026-10-29: Google Sheets option in developer tools
 
 - Each test data set now has a Google Sheets button next to Excel and PDF. It opens a new Google Sheet and copies `=IMPORTDATA("https://om-bancs.onrender.com/login/dummy-data/csv", ",", "en_GB")` (or `transition-csv`). Pasted into A1, the formula loads the data from the hosted site.

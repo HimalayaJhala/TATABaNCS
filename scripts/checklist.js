@@ -206,6 +206,8 @@ async function accept(p, contract, date) {
   await step(v, '#endr-serial-1');
   await step(v, '#nav-endr-quote-submission');
   ok((await text(v, '#hdr-sub-status')) === 'Endorsement Submitted', 'status shows Endorsement Submitted');
+  const chkGrey = await v.$$eval('#left-nav li.scoped a', as => as.map(x => x.textContent.trim()));
+  ok(chkGrey.length === 0 && !!(await v.$('#nav-endr-quote-submission')), `the Checker's menu has no grey items once the quote is final, as in the SOP (${chkGrey.join(', ') || 'none'})`);
   await step(v, '#btn-activate');
   ok((await text(v, '#hdr-sub-status')) === 'Approved Endorsed Quote', `after Activate: ${await hdr(v)}`);
   await shot(v, 'approved');

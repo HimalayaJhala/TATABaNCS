@@ -71,9 +71,9 @@ const LISTS = {
 // carry the risk-product menu, the same as TFI II's in the recording.
 for (const code of ['OMPLIFE', 'OMPFLIFE', 'GLDEATH', 'GLFINEXP']) LISTS[code] = LISTS.OMSTFII;
 
-// Which sections an endorsement type works on. BaNCS greys these items in the left menu once the
-// endorsement is open (SOP screenshots: for Change Advisor Details, Basic Details, Adviser Info and
-// Advisor Change are grey; every other item is plain).
+// Which sections an endorsement type works on. BaNCS greys these items in the left menu while the quote is a
+// draft (SOP screenshots and the recording: for Change Advisor Details, Basic Details, Adviser Info and Advisor
+// Change are grey). Once it is finalised the menu is plain again, so the Checker never sees grey items.
 const SECTIONS_BY_TYPE = {
   'Change Advisor Details': ['basic-details', 'adviser-info', 'advisor-change'],
   'Change Primary IMED': ['requestor-advisor-info', 'adviser-info'],
@@ -90,7 +90,8 @@ const ONLY_FOR_TYPE = { 'advisor-change': 'Change Advisor Details' };
 function leftNav(productCode, contractNo, endorsement, active) {
   const list = (LISTS[productCode] || LISTS.OMSLISPI)[endorsement ? 'endorsement' : 'policy'];
   const types = endorsement ? endorsement.types || [] : [];
-  const scoped = new Set(types.flatMap(t => SECTIONS_BY_TYPE[t] || []));
+  const draft = !!endorsement && endorsement.status === 'DRAFT ENDORSEMENT QUOTE';
+  const scoped = new Set(draft ? types.flatMap(t => SECTIONS_BY_TYPE[t] || []) : []);
   return list
     .filter(slug => !ONLY_FOR_TYPE[slug] || types.includes(ONLY_FOR_TYPE[slug]))
     .map(slug => ({
