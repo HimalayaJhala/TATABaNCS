@@ -390,10 +390,10 @@ body.is-loading .page-loader { display: flex; margin-bottom: -62px; z-index: 6; 
 body.is-loading details.section, body.is-loading .grid-block, body.is-loading .search-box, body.is-loading .result-head,
 body.is-loading .tip, body.is-loading .tiles, body.is-loading .breadcrumb + .msg { visibility: hidden !important; }
 body.is-loading .modal-overlay { display: none !important; }
-/* Endr Quote Summary is the exception: its read-only sections drop away while it loads, so the action bar moves up
-   under the loader, as the Search screen does when it has nothing to show. */
-body.is-loading[data-screen="quote-summary"] .page-loader { margin-bottom: 8px; }
-body.is-loading[data-screen="quote-summary"] details.section { display: none !important; }
+/* Endr Quote Summary and Basic Details are the exceptions: their sections drop away while they load, so the button
+   bar moves up under the loader, as the Search screen does when it has nothing to show. */
+body.is-loading[data-screen="quote-summary"] .page-loader, body.is-loading[data-screen="basic-details"] .page-loader { margin-bottom: 8px; }
+body.is-loading[data-screen="quote-summary"] details.section, body.is-loading[data-screen="basic-details"] details.section { display: none !important; }
 body.is-loading .btn { pointer-events: none; }
 
 .login-box { margin-top: 70px; }

@@ -77,6 +77,16 @@ async function search(p, fields) {
   await fetch(DATA + '/admin/reset', { method: 'POST' });
   await p.goto(`${B}/policy/${C}/endorse`); await p.select('#endorsement-types-available', 'Change Advisor Details'); await p.click('#btn-move-right'); await step(p, '#btn-save');
   await step(p, '#nav-basic-details');
+  const bdLoading = await p.evaluate(() => {
+    const top = () => Math.round(document.getElementById('btn-save').getBoundingClientRect().top);
+    const before = top();
+    document.body.classList.add('is-loading');
+    const r = { before, during: top(), loaderBottom: Math.round(document.getElementById('page-loader').getBoundingClientRect().bottom),
+      sections: [...document.querySelectorAll('details.section')].every(d => getComputedStyle(d).display === 'none') };
+    document.body.classList.remove('is-loading');
+    return r;
+  });
+  ok(bdLoading.sections && bdLoading.during < bdLoading.before - 300 && bdLoading.during >= bdLoading.loaderBottom, `Basic Details while saving: the sections drop away and Save moves up under the loader (${bdLoading.before} to ${bdLoading.during}, loader ends ${bdLoading.loaderBottom})`);
   const locked = ['bd-segment', 'bd-distribution-channel', 'bd-sales-code-type', 'bd-currency', 'bd-savings-need', 'bd-admin-quote', 'bd-trustee-endorsed', 'bd-rider-commission-applicable'];
   const lockedOk = await Promise.all(locked.map(id => p.$eval('#' + id, e => e.disabled)));
   ok(lockedOk.every(Boolean), 'read-only dropdowns (Segment, Distribution Channel, Currency, ...) are greyed out and disabled');

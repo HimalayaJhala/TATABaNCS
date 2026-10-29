@@ -3,6 +3,10 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: Basic Details collapses while saving
+
+- While Save is loading, Basic Details hides its sections so Save and Continue sit directly under the loader, the same as Endr Quote Summary.
+
 ## 2026-10-29: Whatfix initiator script
 
 - The Whatfix script on every BaNCS page, and on the mailbox, is now `https://cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/initiator/initiator.nocache.js`. It was `.../embed/embed.nocache.js`.
