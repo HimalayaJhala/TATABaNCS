@@ -35,7 +35,7 @@ const go = (p, fn) => Promise.all([p.waitForNavigation(), fn()]);
       const seen = new Set();
       for (const e of document.querySelectorAll('[data-block][id]')) { if (seen.has(e.id)) out.issues.push(`duplicate block id ${e.id}`); seen.add(e.id); }
       if (!document.querySelector('[data-block=screen]')) out.issues.push('no screen block');
-      const wf = document.querySelector('head script[src="https://cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/embed/embed.nocache.js"]');
+      const wf = document.querySelector('head script[src="https://cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/initiator/initiator.nocache.js"]');
       if (!wf || wf.async !== true) out.issues.push('the Whatfix embed script is missing from the page head');
       return out;
     });

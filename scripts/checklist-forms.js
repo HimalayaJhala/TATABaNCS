@@ -287,7 +287,7 @@ async function search(p, fields) {
   const att = await fetch(MAIL + await mb.$eval('#link-attachment', a => a.getAttribute('href')));
   ok(att.status === 200 && (att.headers.get('content-type') || '').includes('spreadsheetml') && (await att.arrayBuffer()).byteLength > 5000, 'the attachment downloads as the Excel workbook');
   const mailHtml = await mb.content();
-  ok(mailHtml.includes('cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/embed/embed.nocache.js') && !/tata/i.test(mailHtml) && mailHtml.includes('favicon.svg?v=3'), 'the mail pages carry the Whatfix script and the bank favicon, with no Tata branding');
+  ok(mailHtml.includes('cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/initiator/initiator.nocache.js') && !/tata/i.test(mailHtml) && mailHtml.includes('favicon.svg?v=3'), 'the mail pages carry the Whatfix script and the bank favicon, with no Tata branding');
   await mb.goto(B + '/login');
   const bancsHtml = await mb.content();
   ok(bancsHtml.includes('favicon.svg?v=3') && bancsHtml.includes('favicon.ico?v=3') && !/tata/i.test(bancsHtml), 'the BaNCS pages use the versioned bank favicon, so Chrome drops the old icon');
