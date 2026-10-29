@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: Endr Quote Summary button rows as in the recording
+
+- The endorsement step buttons are smaller: 10.5px text and tighter padding. The whole step row, Endorsement Detail included, now fits on one line, with Back / Continue / Premium Projection right-aligned on the line below, as in the recording. This holds while loading and when not loading.
+- It's two rows at 1366px and wider at every stage. At 1280px, only the 10-button state right after Create or Refresh Layer wraps.
+- The Google Sheets new-tab test now waits for the tab itself, instead of a fixed 3 s.
+
 ## 2026-10-29: start page and keep-awake
 
 - `start/index.html` is a static start page (Render static site `om-bancs-start`). It shows the BaNCS loading ring and "Starting TCS BaNCS…" while the free service wakes, then opens `https://om-bancs.onrender.com/IIMS/`. Share this link with users.

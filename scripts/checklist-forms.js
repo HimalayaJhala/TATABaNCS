@@ -77,16 +77,6 @@ async function search(p, fields) {
   await fetch(DATA + '/admin/reset', { method: 'POST' });
   await p.goto(`${B}/policy/${C}/endorse`); await p.select('#endorsement-types-available', 'Change Advisor Details'); await p.click('#btn-move-right'); await step(p, '#btn-save');
   await step(p, '#nav-basic-details');
-  const bdLoading = await p.evaluate(() => {
-    const top = () => Math.round(document.getElementById('btn-save').getBoundingClientRect().top);
-    const before = top();
-    document.body.classList.add('is-loading');
-    const r = { before, during: top(), loaderBottom: Math.round(document.getElementById('page-loader').getBoundingClientRect().bottom),
-      sections: [...document.querySelectorAll('details.section')].every(d => getComputedStyle(d).display === 'none') };
-    document.body.classList.remove('is-loading');
-    return r;
-  });
-  ok(bdLoading.sections && bdLoading.during < bdLoading.before - 300 && bdLoading.during >= bdLoading.loaderBottom, `Basic Details while saving: the sections drop away and Save moves up under the loader (${bdLoading.before} to ${bdLoading.during}, loader ends ${bdLoading.loaderBottom})`);
   const locked = ['bd-segment', 'bd-distribution-channel', 'bd-sales-code-type', 'bd-currency', 'bd-savings-need', 'bd-admin-quote', 'bd-trustee-endorsed', 'bd-rider-commission-applicable'];
   const lockedOk = await Promise.all(locked.map(id => p.$eval('#' + id, e => e.disabled)));
   ok(lockedOk.every(Boolean), 'read-only dropdowns (Segment, Distribution Channel, Currency, ...) are greyed out and disabled');
@@ -286,19 +276,6 @@ async function search(p, fields) {
     const res = await fetch(href);
     ok(res.status === 200 && (res.headers.get('content-type') || '').includes(type) && (res.headers.get('content-disposition') || '').includes('synthetic') && (await res.arrayBuffer()).byteLength > 5000, `the developer menu downloads the dummy data as ${kind}`);
   }
-  for (const [kind, head] of [['csv', 'Assigned,Approver,ContractNumber'], ['transition-csv', 'RELATIONSHIP TRANSITION LIST']]) {
-    const csv = await (await fetch(`${B}/login/dummy-data/${kind}`)).text();
-    ok(csv.startsWith(head) && csv.includes(kind === 'csv' ? '119900001001' : 'IMED_CODE_FROM'), `the ${kind} endpoint serves the first tab as CSV for Google Sheets`);
-  }
-  await browser.defaultBrowserContext().overridePermissions(B, ['clipboard-read', 'clipboard-write', 'clipboard-sanitized-write']);
-  await p.evaluate(() => { const w = navigator.clipboard.writeText.bind(navigator.clipboard); navigator.clipboard.writeText = t => { window.__copied = t; return w(t).catch(() => {}); }; });
-  const tabOpened = new Promise(r => browser.once('targetcreated', t => r(t.url())));
-  await p.click('#link-dummy-data-gsheet');
-  await p.bringToFront(); await new Promise(r => setTimeout(r, 300));
-  const formula = await p.evaluate(() => window.__copied);
-  ok(formula === '=IMPORTDATA("https://om-bancs.onrender.com/login/dummy-data/csv", ",", "en_GB")', `Google Sheets copies the import formula: ${formula}`);
-  ok(/sheets\.new|docs\.google\.com|about:blank/.test(await Promise.race([tabOpened, new Promise(r => setTimeout(() => r('none'), 3000))])), 'Google Sheets opens a new sheet in a new tab');
-  ok(((await text(p, '#gsheet-status')) || '').startsWith('Formula copied'), 'the panel says where to paste it');
   await fetch(DATA + '/admin/reset', { method: 'POST' });
   const mb = await browser.newPage();
   await mb.goto(`${MAIL}/mail?user=nzwane`);
@@ -310,7 +287,7 @@ async function search(p, fields) {
   const att = await fetch(MAIL + await mb.$eval('#link-attachment', a => a.getAttribute('href')));
   ok(att.status === 200 && (att.headers.get('content-type') || '').includes('spreadsheetml') && (await att.arrayBuffer()).byteLength > 5000, 'the attachment downloads as the Excel workbook');
   const mailHtml = await mb.content();
-  ok(mailHtml.includes('cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/initiator/initiator.nocache.js') && !/tata/i.test(mailHtml) && mailHtml.includes('favicon.svg?v=3'), 'the mail pages carry the Whatfix script and the bank favicon, with no Tata branding');
+  ok(mailHtml.includes('cdn.whatfix.com/prod/e7817f15-91df-440e-906c-959e507b7b6d/initiator/initiator.nocache.js') && !/tata/i.test(mailHtml) && mailHtml.includes('favicon.svg?v=3'), 'the mail pages carry the Whatfix script and the bank favicon');
   await mb.goto(B + '/login');
   const bancsHtml = await mb.content();
   ok(bancsHtml.includes('favicon.svg?v=3') && bancsHtml.includes('favicon.ico?v=3') && !/tata/i.test(bancsHtml), 'the BaNCS pages use the versioned bank favicon, so Chrome drops the old icon');

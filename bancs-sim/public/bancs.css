@@ -122,6 +122,9 @@ a { color: inherit; text-decoration: none; }
 .endr-bar { margin-top: 6px; }
 .action-bar.bottom { position: sticky; bottom: -40px; z-index: 5; margin: 6px -2px 0 -6px; padding: 4px 4px 4px 6px; background: #fff; border-top: 2px solid #accbe8; box-shadow: 0 -3px 6px rgba(0, 0, 0, .12); }
 .action-bar.bottom .endr-bar { justify-content: flex-start; }
+/* The endorsement step buttons are more compact than other BaNCS buttons (recording), so the whole row, Endorsement
+   Detail included, fits on one line and Back / Continue / Premium Projection sit right-aligned on the line below. */
+.endr-bar .btn { padding: 0 6px 0 9px; font-size: 10.5px; }
 
 /* ---- sections and field grids ---- */
 .section { margin: 2px 0 0; }
