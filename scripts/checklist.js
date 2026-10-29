@@ -210,6 +210,8 @@ async function accept(p, contract, date) {
   ok(chkGrey.length === 0 && !!(await v.$('#nav-endr-quote-submission')), `the Checker's menu has no grey items once the quote is final, as in the SOP (${chkGrey.join(', ') || 'none'})`);
   await step(v, '#btn-activate');
   ok((await text(v, '#hdr-sub-status')) === 'Approved Endorsed Quote', `after Activate: ${await hdr(v)}`);
+  const again = await (await fetch(`${DATA}/policies/${C}/endorsements/1/activate`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'dvisser' }) })).json();
+  ok(again.error && again.error.code === 71021 && again.error.message.includes('already been activated'), `activating again says it is already activated: ${again.error && again.error.message}`);
   await shot(v, 'approved');
   const approvedMail = (await (await fetch(DATA + '/mail?to=nzwane')).json())[0];
   ok(approvedMail && approvedMail.kind === 'approved' && approvedMail.contractNo === C, 'Activate closes the loop: the Maker gets an approval email');

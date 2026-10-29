@@ -1,7 +1,6 @@
 // Business rules taken from the SWITCHING OFF FEES SOP. Every rule is enforced here, never in
 // the browser. Errors carry a BaNCS-style numeric code that is rendered as "<code>*****: <msg>".
 const store = require('./store');
-const settings = require('./settings');
 const mail = require('./mail');
 const calc = require('./calc');
 
@@ -527,6 +526,9 @@ const isClosed = contractNo => policy(contractNo).book === 'closed';
 async function activate(contractNo, serial, body) {
   const u = user(body.user);
   const e = endorsement(contractNo, serial);
+  if (e.stage === 'approved' || e.stage === 'rejected') {
+    throw new BancsError(71021, `Endorsement quote cannot be activated. It has already been ${e.stage === 'approved' ? 'activated (Approved Endorsed Quote)' : 'rejected'}.`);
+  }
   if (e.stage !== 'submitted') {
     throw new BancsError(71020, 'Endorsement quote cannot be activated. It has not been submitted.');
   }

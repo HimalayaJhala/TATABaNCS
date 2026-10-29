@@ -3,6 +3,10 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: clearer error when activating an approved or rejected quote
+
+- Activate on a quote that is already Approved Endorsed Quote, or rejected, now returns 71021 "It has already been activated (Approved Endorsed Quote)" or "…rejected". It used to return 71020 "It has not been submitted".
+
 ## 2026-10-29: left menu greys sections only while the quote is a draft
 
 - Basic Details, Adviser Info and Advisor Change are greyed for Change Advisor Details only while the quote is DRAFT ENDORSEMENT QUOTE.
