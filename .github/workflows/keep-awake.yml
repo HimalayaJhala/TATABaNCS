@@ -1,0 +1,20 @@
+# Keeps the free Render service (om-bancs) from sleeping, so users don't wait for it to boot and the demo data
+# isn't reset by an idle spin-down. Free on a public repo. GitHub may run a scheduled job a few minutes late, and
+# pauses schedules on repos with no activity for 60 days.
+name: Keep demo awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping om-bancs
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 --retry 2 https://om-bancs.onrender.com/IIMS/)
+          echo "om-bancs answered $code"
+          test "$code" -lt 500

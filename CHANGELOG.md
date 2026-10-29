@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-29: start page and keep-awake
+
+- `start/index.html` is a static start page (Render static site `om-bancs-start`). It shows the BaNCS loading ring and "Starting TCS BaNCS…" while the free service wakes, then opens `https://om-bancs.onrender.com/IIMS/`. Share this link with users.
+- `.github/workflows/keep-awake.yml` pings `/IIMS/` every 10 minutes, so the service normally doesn't sleep and the data isn't reset by idling. That's about 0.5 MB of traffic a month, and free on a public repo.
+
 ## 2026-10-29: clearer error when activating an approved or rejected quote
 
 - Activate on a quote that is already Approved Endorsed Quote, or rejected, now returns 71021 "It has already been activated (Approved Endorsed Quote)" or "…rejected". It used to return 71020 "It has not been submitted".

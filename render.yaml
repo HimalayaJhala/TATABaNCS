@@ -11,3 +11,9 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20.18.0
+  # Entry page that never sleeps: shows the BaNCS loading ring while om-bancs wakes, then opens its login page.
+  - type: web
+    name: om-bancs-start
+    runtime: static
+    buildCommand: echo static
+    staticPublishPath: start
