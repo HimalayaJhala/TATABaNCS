@@ -98,7 +98,8 @@ const salesCodes = async (p, base, contract) => {
 
   await openPolicy(m, OPEN, '102790003001');
   ok((await salesCodes(m, OPEN, '102790003001')).join() === '633310', 'Requestor Advisor Info on 102790003001 shows 633310, not the list\'s IMED_CODE_FROM 610901 (mismatch: stop)');
-  ok(await m.$eval('#btn-add', b => b.disabled), 'outside a Change Primary IMED endorsement, Add is disabled');
+  await step(m, '#btn-add');
+  ok((await text(m, '#error-message') || '').startsWith('56401'), `outside a Change Primary IMED endorsement, Add is refused: ${await text(m, '#error-message')}`);
 
   rows = await search(m, OPEN, '13394001%');
   ok(rows.length === 0 && (await text(m, '#no-results')) === 'No records found.', 'a closed-book number is not found in the open book');

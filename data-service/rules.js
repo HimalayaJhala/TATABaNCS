@@ -514,7 +514,9 @@ async function submit(contractNo, serial, body) {
   makerOnly(u, 'Submit');
   const e = endorsement(contractNo, serial);
   if (e.stage !== 'finalised') {
-    throw new BancsError(48101, 'Endorsement quote cannot be submitted. Finalise Endorsement has not been completed or the quote is already submitted.');
+    throw new BancsError(48101, e.stage === 'submitted' || e.stage === 'approved' || e.stage === 'rejected'
+      ? `Endorsement quote cannot be submitted. It is already submitted (Sub Status: ${e.subStatus}).`
+      : `Endorsement quote cannot be submitted. Finalise Endorsement has not been completed (Sub Status: ${e.subStatus}). Complete the steps on Endr Quote Summary first.`);
   }
   const sub = applySubmissionFields(e, body);
   const problems = [];

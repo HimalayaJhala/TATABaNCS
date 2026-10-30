@@ -121,7 +121,7 @@ async function accept(p, contract, date) {
   ok(p.url().endsWith(`/policy/${C}`) && await p.$('#endorse-modal') === null, 'Save closes the modal and returns to the policy screen');
   ok(await hdr(p) === 'OMS LISP Investment / DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started', `header after endorse: ${await hdr(p)}`);
   const pbar = await enabledBar(p);
-  ok(!pbar.includes('btn-finalise-endorsement') && !pbar.includes('btn-lock-ebq') && pbar.includes('btn-eac'), `policy action bar greys Finalise/Lock/End Sub (enabled: ${pbar.join(', ')})`);
+  ok(pbar.includes('btn-finalise-endorsement') && pbar.includes('btn-lock-ebq') && pbar.includes('btn-eac') && await p.$('#endorsement-action-bar button[disabled]') === null, `policy action bar: every button is clickable (${pbar.join(', ')})`);
   ok(await p.$('#nav-advisor-change') !== null, 'left nav includes Advisor Change');
   await shot(p, 'draft-action-bar');
 
@@ -138,22 +138,18 @@ async function accept(p, contract, date) {
   await accept(p, C, decl);
   ok((await text(p, '#acceptance-value-1')) === 'Yes' && (await text(p, '#acceptance-date-1')) === decl && await p.$('#acceptance-modal') === null, 'Save closes the modal; the list shows Yes with the declaration date');
 
-  // Endr Quote Summary (SOP 14-19): only the next step is enabled at each stage
+  // Endr Quote Summary (SOP 14-19): every button is clickable; a step out of order is refused with the next step named
   await step(p, '#nav-endr-quote-summary');
+  await p.$eval('#btn-finalise-endorsement', e => e.scrollIntoView());
+  await step(p, '#btn-finalise-endorsement');
+  const early = await text(p, '#error-message') || '';
+  ok(early.startsWith('30405') && early.includes('The next step is Create or Refresh Layer') && (await hdr(p)).includes('DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started'), `Finalise clicked first is refused and the quote stays a draft: ${early}`);
   const vis = await p.$eval('#endorsement-action-bar', e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
   ok(vis, 'the action bar is pinned in view on load, without scrolling');
   const r = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/lock-ebq`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json());
   ok(r.error && r.error.code === 30404, `server rejects Lock EBQ posted out of order: ${r.error && r.error.code}`);
-  const expect = [
-    ['#btn-create-refresh-layer', ['btn-create-refresh-layer']],
-    ['#btn-calculate-premium', ['btn-calculate-premium']],
-    ['#btn-end-sub-endorsement', ['btn-end-sub-endorsement']],
-    ['#btn-lock-ebq', ['btn-start-sub-endorsement', 'btn-lock-ebq']],
-    ['#btn-finalise-endorsement', ['btn-finalise-endorsement']]
-  ];
-  for (const [btn, enabled] of expect) {
-    const now = await enabledSteps(p);
-    ok(now.join(',') === enabled.join(','), `before ${btn}: enabled steps ${now.join(', ')}`);
+  for (const btn of ['#btn-create-refresh-layer', '#btn-calculate-premium', '#btn-end-sub-endorsement', '#btn-lock-ebq', '#btn-finalise-endorsement']) {
+    ok(await p.$('#endorsement-action-bar button[disabled]') === null, `before ${btn}: every step button is clickable (${(await enabledSteps(p)).join(', ')})`);
     await p.$eval(btn, e => e.scrollIntoView());
     const t0 = Date.now();
     await step(p, btn);
@@ -274,15 +270,21 @@ async function accept(p, contract, date) {
   const v2 = await (await browser.createBrowserContext()).newPage(); await v2.setViewport({ width: 1300, height: 800 });
   await login(v2, 'dvisser');
   await v2.goto(`${B}/policy/${K}?ctx=policy`);
-  ok(await v2.$eval('#btn-endorse-alter', b => b.disabled), 'Checker sees Endorse/Alter greyed');
+  await step(v2, '#btn-endorse-alter');
+  ok((await text(v2, '#error-message') || '').startsWith('71037'), `Checker's Endorse/Alter is refused: ${await text(v2, '#error-message')}`);
   await step(v2, '#nav-endorsement-quotes'); await step(v2, '#endr-serial-1');
-  ok((await v2.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id))).join() === 'btn-eac,btn-follow-up-report', 'on a draft, the Checker\'s summary bar has only EAC and Follow up report enabled');
+  ok(await v2.$('#endorsement-action-bar button[disabled]') === null, 'on a draft, the Checker\'s summary bar is clickable as in the recording');
+  await v2.$eval('#btn-create-refresh-layer', e => e.scrollIntoView());
+  await step(v2, '#btn-create-refresh-layer');
+  ok((await text(v2, '#error-message') || '').startsWith('71037'), `the Checker's Create or Refresh Layer is refused: ${await text(v2, '#error-message')}`);
   await step(v2, '#nav-endr-quote-submission');
   const subBtns = await v2.$$eval('#bar-submission-actions button', bs => bs.map(b => b.id + (b.disabled ? ':off' : ':on')));
-  ok(subBtns.join() === 'btn-save:off,btn-reject:off,btn-activate:off' && !!(await v2.$('#checker-not-submitted')), `on a draft, the Checker's Endr Quote Submission shows Save, Reject, Activate greyed with a "not submitted yet" note (${subBtns.join()})`);
+  ok(subBtns.join() === 'btn-save:on,btn-reject:on,btn-activate:on', `on a draft, the Checker's Endr Quote Submission shows Save, Reject, Activate clickable (${subBtns.join()})`);
   ok(await v2.$$eval('#bar-submission-actions ~ * select, form select', ss => ss.every(x => x.disabled)), 'and the Checker cannot edit the fields');
   await step(v2, '#nav-basic-details');
-  ok(await v2.$eval('#btn-save', b => b.disabled), 'Checker sees Basic Details Save greyed');
+  await v2.$eval('#btn-save', e => e.scrollIntoView());
+  await step(v2, '#btn-save');
+  ok((await text(v2, '#error-message') || '').startsWith('71037'), `Checker's Basic Details Save is refused: ${await text(v2, '#error-message')}`);
   await v2.close();
 
   await restoreLatency();

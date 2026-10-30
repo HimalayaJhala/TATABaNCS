@@ -157,8 +157,7 @@ async function render(req, res, view, locals = {}) {
     hangMs,
     mailUrl: MAIL,
     book: BOOK, publicUrl: PUBLIC_URL,
-    checker: isChecker(req),   // the Checker sees the Maker's capture buttons greyed (rules.js refuses them anyway)
-    makerOnly: isChecker(req) ? ' disabled title="Maker step: the Checker verifies the submitted quote"' : '',
+    checker: isChecker(req),
     ...locals
   });
 }
@@ -195,9 +194,10 @@ async function loadCtx(req, contractNo, active) {
   return { ...view, endorsement, header, nav };
 }
 
-// Endorsement action bar, as in the SOP screenshots: every button keeps its place and id, only
-// the next valid step is enabled, and the first slot changes from Create or Refresh Layer to
-// Calculate Premium. Once finalised the bar shrinks to the post-submission set.
+// Endorsement action bar, as in the recording: every button keeps its place and id and is clickable;
+// rules.js refuses a step taken out of order or by the wrong persona, and the error names the next step.
+// The first slot changes from Create or Refresh Layer to Calculate Premium. Once finalised the bar
+// shrinks to the post-submission set.
 const BAR_BUTTONS = {
   'create-layer': ['btn-create-refresh-layer', 'Create or Refresh Layer'],
   'calculate-premium': ['btn-calculate-premium', 'Calculate Premium'],
@@ -213,45 +213,26 @@ const BAR_BUTTONS = {
 };
 
 const BAR_BY_STAGE = {
-  //            slots in screen order                                   enabled
-  started: [['create-layer', 'finalise', 'lock-ebq', 'end-sub-endorsement'], ['create-layer']],
-  layer: [['calculate-premium', 'start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'], ['calculate-premium', 'endorsement-detail']],
-  premium: [['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'], ['end-sub-endorsement']],
-  subEnded: [['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'], ['start-sub-endorsement', 'lock-ebq']],
-  locked: [['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'], ['finalise']]
+  //        slots in screen order
+  started: ['create-layer', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
+  layer: ['calculate-premium', 'start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
+  premium: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
+  subEnded: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
+  locked: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement']
 };
 const ALWAYS_ON = ['eac', 'reject-sub-alteration', 'reject-endorsed-quote', 'follow-up-report'];
 
-const NEXT_STEP = { started: 'Create or Refresh Layer', layer: 'Calculate Premium', premium: 'End Sub Endorsement', subEnded: 'Lock EBQ', locked: 'Finalise Endorsement' };
-const STEP_ACTIONS_SET = ['create-layer', 'calculate-premium', 'start-sub-endorsement', 'end-sub-endorsement', 'lock-ebq', 'finalise'];
-
-function actionBar(e, onSummary, checker) {
-  // A greyed step button says what to press instead (hover tooltip).
-  const next = e.stage === 'premium' && e.calc && e.calc.stale ? 'Calculate Premium' : NEXT_STEP[e.stage];
-  const tip = (action, enabled) => (!enabled && STEP_ACTIONS_SET.includes(action) && next ? `Not available yet. Next step: ${next}` : '');
-  // The Checker can only reject a submitted quote; every other step on this bar is the Maker's.
-  const checkerMay = action => action === 'follow-up-report' || action === 'eac' || (action === 'reject-endorsed-quote' && e.stage === 'submitted');
-  const button = (action, enabled) => {
-    if (checker && !checkerMay(action)) return { action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1], enabled: false, tip: 'Maker step: the Checker verifies the submitted quote' };
-    return { action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1], enabled, tip: tip(action, enabled) };
-  };
-  if (e.stage === 'finalised') return [button('reject-endorsed-quote', true), button('follow-up-report', true)];
-  // Submitted and waiting for the Checker: the quote can still be rejected; Activate is on Endr Quote Submission.
-  if (e.stage === 'submitted') return [button('reject-endorsed-quote', true), button('follow-up-report', true)];
-  if (['approved', 'rejected'].includes(e.stage)) return [button('follow-up-report', true)];
-  let [slots, enabled] = BAR_BY_STAGE[e.stage];
-  // After a fee change the calculation is out of date: Calculate Premium opens again and End Sub waits for it.
-  if (e.stage === 'premium' && e.calc && e.calc.stale) {
-    slots = ['calculate-premium', ...slots];
-    enabled = enabled.filter(a => a !== 'end-sub-endorsement').concat('calculate-premium');
-  }
+function actionBar(e, onSummary) {
+  const button = action => ({ action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1] });
+  // Finalised or submitted: the quote can still be rejected; Activate is on Endr Quote Submission.
+  if (e.stage === 'finalised' || e.stage === 'submitted') return [button('reject-endorsed-quote'), button('follow-up-report')];
+  if (['approved', 'rejected'].includes(e.stage)) return [button('follow-up-report')];
+  let slots = BAR_BY_STAGE[e.stage];
+  // After a fee change the calculation is out of date: Calculate Premium comes back as the first slot.
+  if (e.stage === 'premium' && e.calc && e.calc.stale) slots = ['calculate-premium', ...slots];
   // Policy Action Details shows the same bar without the first (layer/premium) slot.
   const shown = onSummary ? slots : slots.filter(a => a !== 'create-layer' && a !== 'calculate-premium');
-  return [
-    ...shown.map(a => button(a, enabled.includes(a))),
-    ...ALWAYS_ON.map(a => button(a, true)),
-    button('endorsement-detail', enabled.includes('endorsement-detail'))
-  ];
+  return [...shown, ...ALWAYS_ON, 'endorsement-detail'].map(button);
 }
 
 function needEndorsement(req, res, ctx) {
@@ -395,7 +376,7 @@ app.get('/policy/:id', requireLogin, async (req, res) => {
   const ctx = await loadCtx(req, req.params.id, 'policy-action-details');
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   render(req, res, 'policy', {
-    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false, isChecker(req)) : null,
+    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false) : null,
     breadcrumb: 'Home > Policy Servicing > Policy Action Details'
   });
 });
@@ -701,7 +682,7 @@ app.get('/policy/:id/quote-summary', requireLogin, async (req, res) => {
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   if (!needEndorsement(req, res, ctx)) return;
   render(req, res, 'quote-summary', {
-    ...ctx, bar: actionBar(ctx.endorsement, true, isChecker(req)), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
+    ...ctx, bar: actionBar(ctx.endorsement, true), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
   });
 });
 
@@ -812,6 +793,10 @@ app.post('/policy/:id/requestor-advisor-info', requireLogin, async (req, res) =>
   const serial = req.session.ctx[id];
   const op = req.body.op;
   if (op === 'add' || op === 'delete') {
+    if (isChecker(req)) {
+      flash(req, 'error', fmtError({ code: 71037, message: `Requestor Advisor Info is a Maker step. The Checker (${req.session.user.role}) verifies a submitted quote and activates or rejects it.` }));
+      return res.redirect(here);
+    }
     // Outside a Change Primary IMED endorsement there is nothing to change yet.
     const e = serial && (await api('GET', `/policies/${id}/endorsements/${serial}`)).data;
     if (!e || e.status !== 'DRAFT ENDORSEMENT QUOTE' || !e.types.includes('Change Primary IMED')) {

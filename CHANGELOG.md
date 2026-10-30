@@ -3,6 +3,15 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-10-30: every action button is clickable
+
+- **Buttons are no longer greyed to enforce the order of steps**, as in the recording. That covers the Endr Quote Summary and Policy Action Details step bar, Submit on Endr Quote Submission, the Checker's Save / Reject / Activate and Maker buttons, and Requestor Advisor Info Add / Delete. The invented hover texts ("Not available yet. Next step: …", "Finalise Endorsement first", "Maker step…") and the Checker's "not submitted yet" note are gone.
+- **The server rules are unchanged** and refuse a wrong click with an error band, and the quote doesn't move: `30401`–`30405` / `30410` for a step out of order (naming the next step), `48101` for Submit before Finalise, `71020` for Activate before Submit, and `71037` for a Maker step by the Checker.
+- `48101` now gives the current Sub Status and says to complete the Endr Quote Summary steps first.
+- Read-only fields stay greyed; only the buttons changed.
+- **Why:** a guided flow could skip Finalise Endorsement without anything visibly going wrong; Submit just stayed grey. Now the click goes through and the error says what is missing.
+- **Tests:** updated to check that buttons are clickable and that out-of-order clicks are refused.
+
 ## 2026-10-29: the Checker only verifies
 
 - **Server rule 71037:** the Checker (PREM-ADM) can no longer do any Maker step, whether through the screens or by calling the server directly. That covers Endorse/Alter, Basic Details, Acceptance, the Endr Quote Summary steps, saving or submitting Endr Quote Submission, Requestor Advisor Info and Advisor Change. The Checker can also only reject a quote that has been submitted. This is the counterpart of 71035, where the Maker can't activate their own quote.

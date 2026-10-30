@@ -34,28 +34,15 @@
     </div>
   </div>
 </details>
-<% if (checker && e.stage !== 'submitted' && !['approved', 'rejected'].includes(e.stage)) { %>
-<div class="msg msg-info" id="checker-not-submitted" role="status"><span class="msg-icon">&#8505;</span><span>This quote has not been submitted for verification yet (Sub Status: <%= e.subStatus || e.status %>). Save, Reject and Activate become available to the Checker once the Maker submits it.</span></div>
-<% } %>
 <div class="btnbar button-bar" id="bar-submission-actions" data-block="button-bar" style="margin-top:8px">
-<% if (checker && e.stage !== 'submitted' && !['approved', 'rejected'].includes(e.stage)) { %>
-  <button class="btn" type="button" id="btn-save" disabled title="Maker step: the Checker verifies the submitted quote">Save</button>
-  <button class="btn" type="button" id="btn-reject" disabled title="Not submitted yet">Reject</button>
-  <button class="btn" type="button" id="btn-activate" disabled title="Not submitted yet">Activate</button>
-<% } else if (e.status === 'DRAFT ENDORSEMENT QUOTE') { %>
-  <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
-  <button class="btn" type="button" id="btn-submit" disabled title="Finalise Endorsement first">Submit</button>
-<% } else if (e.stage === 'finalised') { %>
+<% /* Every button is clickable, as in the recording; rules.js refuses an out-of-order step or the wrong persona. */ %>
+<% if (!checker && (e.status === 'DRAFT ENDORSEMENT QUOTE' || e.stage === 'finalised')) { %>
   <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
   <button class="btn" type="submit" name="op" value="submit" id="btn-submit" data-busy<%- hangMs.submit ? ' data-hang-ms="' + hangMs.submit + '"' : '' %>>Submit</button>
-<% } else if (e.stage === 'submitted') { %>
+<% } else { %>
   <button class="btn" type="submit" name="op" value="save" id="btn-save">Save</button>
   <button class="btn" type="submit" name="op" value="reject" id="btn-reject">Reject</button>
   <button class="btn" type="submit" name="op" value="activate" id="btn-activate" data-busy<%- hangMs.activate ? ' data-hang-ms="' + hangMs.activate + '"' : '' %>>Activate</button>
-<% } else { %>
-  <button class="btn" type="submit" name="op" value="save" id="btn-save" disabled>Save</button>
-  <button class="btn" type="button" id="btn-reject" disabled>Reject</button>
-  <button class="btn" type="button" id="btn-activate" disabled title="<%= e.subStatus || e.status %>">Activate</button>
 <% } %>
 </div>
 </form>

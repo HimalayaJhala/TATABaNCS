@@ -98,7 +98,10 @@ async function search(p, fields) {
   const enabled = await Promise.all(sel.map(id => p.$eval(id, e => !e.disabled)));
   ok(enabled.every(Boolean), 'the five SOP dropdowns can be filled in while the quote is still a draft');
   ok(await p.$eval('#all-parties-accepted', e => e.disabled), 'All Contracting Parties have accepted is read-only (it follows Acceptance)');
-  ok(await p.$eval('#btn-submit', e => e.disabled), 'Submit is greyed out until the endorsement is finalised');
+  ok(await p.$eval('#btn-submit', e => !e.disabled), 'Submit is clickable on a draft, as in the recording');
+  await step(p, '#btn-submit');
+  const early = await p.$eval('#error-message', e => e.textContent).catch(() => '');
+  ok(early.includes('48101') && early.includes('Finalise Endorsement has not been completed'), `Submit on a draft is refused and names Finalise Endorsement: ${early}`);
   const opts = async id => p.$$eval(id + ' option', o => o.map(x => x.textContent || '(blank)'));
   ok((await opts('#all-admin-requirements-received')).includes('Accepted') && (await opts('#admin-requirements-outstanding'))[0] === '(blank)' && (await opts('#legal-verification')).includes('Approved') && (await opts('#reinsurance-verified')).includes('Yes'), 'each dropdown offers the SOP value (blank / Accepted / Approved / Yes)');
   ok((await p.$$eval('#sec-acceptance-declaration select', es => es.every(e => !e.title))), 'the Acceptance and Declaration fields carry no SOP tooltips');
@@ -163,8 +166,9 @@ async function search(p, fields) {
   await p.goto(`${B}/policy/${C}/endorse`); await p.select('#endorsement-types-available', 'Change Advisor Details'); await p.click('#btn-move-right'); await step(p, '#btn-save');
   await p.goto(`${B}/policy/${C}/acceptance`); await step(p, '#acceptance-serial-1'); await p.select('#application-accepted', 'Yes'); await p.type('#acceptance-date', '04/08/2026'); await step(p, '#btn-save');
   await step(p, '#nav-endr-quote-summary'); await step(p, '#btn-create-refresh-layer'); await step(p, '#btn-calculate-premium');
-  const tip = await p.$eval('#btn-lock-ebq', e => e.title);
-  ok(tip.includes('End Sub Endorsement'), `a greyed Lock EBQ explains itself on hover: "${tip}"`);
+  await p.$eval('#btn-lock-ebq', e => e.scrollIntoView()); await step(p, '#btn-lock-ebq');
+  const lockErr = await p.$eval('#error-message', e => e.textContent).catch(() => '');
+  ok(lockErr.includes('30404') && lockErr.includes('The next step is End Sub Endorsement'), `Lock EBQ clicked too early is refused and names the next step: "${lockErr}"`);
   const post = (action) => fetch(`${DATA}/policies/${C}/endorsements/1/actions/${action}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
   let r1 = await post('lock-ebq');
   ok(r1.error && r1.error.code === 30404 && r1.error.message.includes('The next step is End Sub Endorsement'), 'Lock EBQ too early names the step to take first');
@@ -440,7 +444,7 @@ async function search(p, fields) {
   await p.goto(`${B}/policy/${C}/quote-summary`);
   await p.$eval('#sec-calculation-basis', d => { d.open = true; });
   const enabledNow = await p.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id));
-  ok(await p.$('#calc-stale-note') !== null && enabledNow.includes('btn-calculate-premium') && !enabledNow.includes('btn-end-sub-endorsement'), 'after the fee is changed the page says the figures are out of date, Calculate Premium opens again and End Sub Endorsement waits');
+  ok(await p.$('#calc-stale-note') !== null && enabledNow[0] === 'btn-calculate-premium', 'after the fee is changed the page says the figures are out of date and Calculate Premium comes back as the first button');
   const endSub = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/end-sub-endorsement`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
   ok(endSub.error && endSub.error.code === 30411, `the server refuses End Sub Endorsement on out-of-date figures: ${endSub.error && endSub.error.code}`);
   await step(p, '#btn-calculate-premium');

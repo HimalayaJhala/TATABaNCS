@@ -1,7 +1,7 @@
 <% var HANG_KEY = { 'create-layer': 'createLayer', 'calculate-premium': 'calcPremium', 'end-sub-endorsement': 'endSub', 'lock-ebq': 'lockEbq', 'finalise': 'finalise' }; %>
-<% /* Endorsement action bar. Disabled buttons keep their place and id, as in BaNCS. */ %>
+<% /* Endorsement action bar. Every button is clickable; the server refuses a step taken out of order. */ %>
 <div class="btnbar endr-bar button-bar" id="endorsement-action-bar" data-block="button-bar" data-bar="endorsement-steps">
 <% bar.forEach(function (b) { %>
-  <form method="post" action="/policy/<%= contractNo %>/quote-summary/<%= b.action %>" data-busy<%- hangMs[HANG_KEY[b.action]] ? ' data-hang-ms="' + hangMs[HANG_KEY[b.action]] + '"' : '' %>><% if (returnTo) { %><input type="hidden" name="returnTo" value="<%= returnTo %>"><% } %><button class="btn" type="submit" id="<%= b.id %>"<%= b.enabled ? '' : ' disabled' %><%- b.tip ? ' title="' + b.tip + '"' : '' %>><%= b.label %></button></form>
+  <form method="post" action="/policy/<%= contractNo %>/quote-summary/<%= b.action %>" data-busy<%- hangMs[HANG_KEY[b.action]] ? ' data-hang-ms="' + hangMs[HANG_KEY[b.action]] + '"' : '' %>><% if (returnTo) { %><input type="hidden" name="returnTo" value="<%= returnTo %>"><% } %><button class="btn" type="submit" id="<%= b.id %>"><%= b.label %></button></form>
 <% }) %>
 </div>

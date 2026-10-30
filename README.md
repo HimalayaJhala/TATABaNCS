@@ -117,8 +117,8 @@ With the demo running, `npm run test:sheet` checks the calculation workbook agai
 5. Select **Change Advisor Details**, click `>`, then Save. The modal closes and you are back on Policy Action Details, where the header reads DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started.
 6. Basic Details → scroll to Remuneration And Fee Details → VAT Inclusive Asset Advice Fee = 0 → scroll down → Save. Both fees now read **0.000**.
 7. Acceptance → serial **1** (Acceptance Details modal, URL `/policy/<contract>/acceptance/1`) → Yes, and the declaration date → Save. You return to the Acceptance list, now showing Yes and the date.
-8. Endr Quote Summary → scroll down, then click Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement in turn. The bar sits under the summary tables, and **only the next step is enabled**; the others are greyed, as in the SOP screenshots.
-   If you are unsure which button comes next, hover a greyed one: the tooltip names the next step (for example "Not available yet. Next step: Lock EBQ"). The header's **Sub Status** also tells you where you are: Sub-Endorsement Started → Sub-Endorsement End → Endorsement Quote Locked → Endorsement Submission Pending. A step clicked twice, or too early, shows an error that names the step to take next (`30404`, `30410`).
+8. Endr Quote Summary → scroll down, then click Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement in turn. The bar sits under the summary tables, and **every button is clickable**, as in the recording.
+   A step clicked out of order is refused with an error that names the step to take next, and the quote doesn't move. The header's **Sub Status** also tells you where you are: Sub-Endorsement Started → Sub-Endorsement End → Endorsement Quote Locked → Endorsement Submission Pending. A step clicked twice, or too early, shows an error that names the step to take next (`30404`, `30410`).
 9. Endr Quote Submission:
    - Admin Requirements Outstanding: blank
    - Underwriting Requirements Outstanding: blank
@@ -188,7 +188,7 @@ Save on the Acceptance screen and the other saves not in this table have no wait
 - **Amend Pot Percentage Reason** (Customer request, Error correction, Change of adviser, Regulatory requirement), **No Dealings** and **Remove Reason** are editable. They are saved with the fee and shown after the refresh, and written to the policy on Activate.
 
 **Endr Quote Submission** (the SOP's five dropdowns)
-- Fillable as soon as the quote is open, not only after Finalise. Save works from the draft stage, and the choices carry through to Finalise. **Submit** stays greyed out until the endorsement is finalised. Once submitted, the form locks, apart from Save, Reject and Activate.
+- Fillable as soon as the quote is open, not only after Finalise. Save works from the draft stage, and the choices carry through to Finalise. **Submit** is always clickable; before Finalise Endorsement it is refused with `48101`, which gives the current Sub Status. Once submitted, the form locks, apart from Save, Reject and Activate.
 - Each dropdown offers the SOP value, and a tooltip on the field repeats the SOP instruction:
 
   | Field | Options | SOP value |
@@ -290,7 +290,7 @@ Run `npm run seed` then `npm run worklist` to regenerate; `npm run reset` restor
 | Rule | Error |
 | --- | --- |
 | Endorse/Alter while an endorsement is open, submitted-but-not-activated, or finalised with a future effective date | `56000` |
-| Endr Quote Summary step out of order (greyed in the UI; also refused if posted directly) | `30401`–`30405` |
+| Endr Quote Summary step out of order | `30401`–`30405` |
 | Finalise before contracting-party acceptance is captured | `30407` |
 | Fee change outside an endorsement, or after End Sub Endorsement | `56010` / `56011` |
 | Submit unless the five SOP controls hold their required values | `48120` (lists each failing control) |
@@ -369,7 +369,7 @@ The IDs are hand-written and stable. The main ones:
 - **Endorsement modal:** `#endorse-modal`, `#endorsement-types-available`, `#btn-move-right`, `#endorsement-types-selected`, `#btn-save`, `#btn-endorse-back`, `#btn-modal-close`. Errors inside it use `#modal-error-message`.
 - **Basic Details:** `#vat-inclusive-asset-advice-fee`, `#vat-exclusive-asset-advice-fee`, `#btn-save` (below the fold)
 - **Acceptance:** `#acceptance-serial-1` (opens the modal `#acceptance-modal`), then `#application-accepted`, `#acceptance-date`, `#btn-save`, `#btn-acceptance-back`
-- **Endr Quote Summary:** `#endorsement-action-bar`, containing `#btn-create-refresh-layer`, `#btn-calculate-premium`, `#btn-end-sub-endorsement`, `#btn-lock-ebq` and `#btn-finalise-endorsement`. A greyed button carries `disabled`.
+- **Endr Quote Summary:** `#endorsement-action-bar`, containing `#btn-create-refresh-layer`, `#btn-calculate-premium`, `#btn-end-sub-endorsement`, `#btn-lock-ebq` and `#btn-finalise-endorsement`. No step button carries `disabled`.
 - **Submission:** `#admin-requirements-outstanding`, `#underwriting-requirements-outstanding`, `#all-admin-requirements-received`, `#reinsurance-verified`, `#legal-verification`, `#btn-save`, `#btn-submit`, `#btn-activate`
 - **Endorsement Quotes:** `#endr-serial-<n>`, `#endr-row-<n>`
 - **Advisor Change:** `#btn-edit-contribution-sharing`, `#btn-edit-asset-sharing`, `#btn-save`. In the dialog: `#sharing-modal`, `#btn-share-add`, `#btn-share-delete`, `#btn-share-save`, `#btn-share-close`, and per new row `#share-advisor-<i>`, `#share-primary-<i>`, `#share-<i>-<k>` (k = share column, from 0).
@@ -381,7 +381,7 @@ These follow the SOP screenshots and the recording, because Seek ultimately has 
 1. **The work list replaces Bizagi.** The case comes from the Excel S&I sheet, and the Bizagi app has been removed. BaNCS's own "Bizagi Case Id" field on the Endorsement Initiation Screen stays at `NA`, as in the SOP.
 2. **"Change Advisor Details"** is the spelling in the picklist and the endorsement tables (SOP screenshots). The SOP text and the brief say "Adviser".
 3. **"Approved Endorsed Quote"** is the sub status after Activate (SOP screenshot 25). The SOP text says "Approve Endorsement Quote".
-4. **Step ordering is enforced by greying out buttons**, as BaNCS does, rather than by an error after the click. The server still refuses an out-of-order step.
+4. **Step ordering is enforced by the server, not by greying out buttons.** Every action button is clickable, as in the recording; a step out of order, or a Maker step clicked by the Checker (`71037`), is refused with an error and nothing changes.
 5. **Intermediate sub statuses** come from the recording and the SOP: "Endorsement Quote Locked" after Lock EBQ, and FINAL ENDORSEMENT QUOTE / "Endorsement Submission Pending" after Finalise.
 6. **The Endorsement Initiation Screen and Acceptance Details are in-page modals**, not browser windows, so there is nothing to switch to or to unblock. (The SOP shows them as pop-ups.)
 7. **Distribution Channel** is "Personal Finance Advice SA", and **Policy Start Date** is 30/01/2026. Both are read off the recording.
