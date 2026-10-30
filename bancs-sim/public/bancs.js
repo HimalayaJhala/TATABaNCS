@@ -169,10 +169,11 @@
   })();
 
   // Developer tools, Google Sheets: copy an IMPORTDATA formula for the work list's CSV, then let the link open a new
-  // sheet. Pasting the formula into A1 loads the data (dates read as dd/mm/yyyy).
+  // sheet. Pasting the formula into A1 loads the data. IMPORTDATA turns dd/mm/yyyy into a bare serial (46238), so
+  // whole numbers in the 2000-2049 date range are written back as dd/mm/yyyy; no code or amount in the lists falls there.
   Array.prototype.forEach.call(document.querySelectorAll('[data-gsheet]'), function (a) {
     a.addEventListener('click', function () {
-      var formula = '=IMPORTDATA("' + a.getAttribute('data-gsheet') + '", ",", "en_GB")';
+      var formula = '=MAP(IMPORTDATA("' + a.getAttribute('data-gsheet') + '", ",", "en_GB"), LAMBDA(x, IF(AND(ISNUMBER(x), x >= 36526, x <= 54789, x = INT(x)), TEXT(x, "dd/mm/yyyy"), x)))';
       var status = document.getElementById('gsheet-status');
       var done = function () { if (status) status.textContent = 'Formula copied. In the new Google Sheet, click cell A1 and paste (Ctrl+V / Cmd+V).'; };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(formula).then(done, function () { window.prompt('Copy this formula into cell A1 of the new sheet:', formula); });
