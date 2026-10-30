@@ -52,7 +52,7 @@
   </form>
 </div>
 <div class="login-box" id="block-login" data-block="form-frame">
-  <h1>Insurance - Login</h1>
+  <h1>TCS BaNCS Insurance - Login</h1>
   <form method="post" action="/login" id="form-login">
     <div class="fields one" id="fields-login">
       <%- F.field({ id: 'login-user', label: 'User', mandatory: true, control: F.select({ id: 'login-user', name: 'user', options: [['', '--Select--']].concat(users.map(function (u) { return [u.id, u.name + ' \u2014 ' + (u.kind === 'capturer' ? 'Maker' : 'Checker') + ' (' + u.role + ')']; })) }) }) %>

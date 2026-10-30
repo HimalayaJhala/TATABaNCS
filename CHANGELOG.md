@@ -3,9 +3,8 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
-## 2026-10-30: login heading and Google Sheets dates
+## 2026-10-30: Google Sheets dates
 
-- The login box heading is now "Insurance - Login", without "TCS BaNCS".
 - **Google Sheets:** the copied formula wraps IMPORTDATA in MAP/LAMBDA, so Declaration Signed Date (and the transition list's dates) shows as 04/08/2026 instead of the serial 46238. Only whole numbers in the 2000–2049 date range are converted, and no code or amount in either list falls there.
 
 ## 2026-10-30: every action button is clickable
