@@ -35,6 +35,26 @@ const wrap = fn => async (req, res) => {
 };
 
 const db = () => store.get();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Latency lives in the API. A Maker's timed step is checked first, so a refusal answers at once, then held for the
+// time set in the developer tools, and only then committed: the record changes when the wait is over, not before.
+// The check is a dry run that is rolled back (the rules run without awaiting anything, so nothing else sees it).
+// The Checker never waits, and neither does a call that names no user. Reads (search) are held after they succeed.
+// The wait is reported in X-Latency-Waited-Ms, so the web layer knows to show the result 0.5 s after it arrives.
+async function held(key, req, res, work, { mutates = true } = {}) {
+  const id = (req.body && req.body.user) || req.query.user;
+  const who = id && db().users.find(u => u.id === id);
+  const ms = who && who.kind !== 'verifier' ? Math.round(settings.seconds(key) * 1000) : 0;
+  if (!ms) return work();
+  if (mutates) {
+    const before = store.snapshot();
+    try { await work(); } finally { store.restore(before); store.save(); }
+  } else await work();
+  await sleep(ms);
+  res.set('X-Latency-Waited-Ms', String(ms));
+  return work();
+}
 
 function policyView(contractNo) {
   const policy = rules.policy(contractNo);
@@ -68,12 +88,6 @@ app.put('/settings/latency', wrap(req => {
   return s;
 }));
 
-// Waits out one step's configured latency, server-side. BaNCS calls this alongside the step's real work, inside the
-// request the browser is waiting on, so the front end cannot skip it and the screen loads for whichever is longer.
-app.post('/latency/:key', wrap(async req => {
-  if (!settings.known(req.params.key)) throw new rules.BancsError(90002, `Unknown latency step ${req.params.key}.`, 404);
-  return { step: req.params.key, waitedMs: await settings.wait(req.params.key) };
-}));
 app.get('/users', wrap(() => db().users));
 app.get('/users/:id', wrap(req => rules.user(req.params.id)));
 
@@ -112,7 +126,8 @@ app.post('/admin/clear-endorsements', wrap(req => {
 //  - A % anywhere in the criterion is a wildcard, as in BaNCS (e.g. 100002558001%).
 //  - Status matches the policy's status or the status of any of its endorsement quotes.
 //  - Book: each BaNCS only sees its own policies. open (the default), closed, or all.
-app.get('/policies', wrap(req => {
+app.get('/policies', wrap((req, res) => held('search', req, res, () => searchPolicies(req), { mutates: false })));
+function searchPolicies(req) {
   const q = req.query;
   const book = q.book || 'open';
   const has = v => v !== undefined && String(v).trim() !== '';
@@ -139,19 +154,20 @@ app.get('/policies', wrap(req => {
     const last = rules.endorsementsOf(p.contractNo).filter(e => e.status === rules.S.FINAL).pop();
     return { ...p, endrDate: last ? last.effectiveDate : '' };
   });
-}));
+}
 
 
 app.get('/policies/:contractNo', wrap(req => policyView(req.params.contractNo)));
 app.get('/policies/:contractNo/requester-parties', wrap(req => rules.requesterParties(req.params.contractNo)));
 app.get('/policies/:contractNo/endorsements', wrap(req => rules.endorsementsOf(req.params.contractNo)));
 
-app.post('/policies/:contractNo/endorse-check', wrap(req => {
+app.post('/policies/:contractNo/endorse-check', wrap((req, res) => held('endorseOpen', req, res, () => {
   rules.checkCanEndorse(req.params.contractNo);
   return { ok: true };
-}));
+}, { mutates: false })));
 
-app.post('/policies/:contractNo/endorsements', wrap(req => rules.createEndorsement(req.params.contractNo, req.body)));
+app.post('/policies/:contractNo/endorsements', wrap((req, res) =>
+  held('endorseSave', req, res, () => rules.createEndorsement(req.params.contractNo, req.body))));
 
 app.get('/advisers', wrap(() => rules.advisersMaster()));
 // Intermediary register (Intermediary Enquiry): look an adviser up by sales code or party code.
@@ -177,23 +193,26 @@ app.get('/policies/:contractNo/endorsements/:serial', wrap(req => {
   return { ...e, submissionView: rules.submissionOf(e) };
 }));
 
-app.put('/policies/:contractNo/endorsements/:serial/fee', wrap(req =>
-  rules.updateFee(req.params.contractNo, req.params.serial, req.body)));
+app.put('/policies/:contractNo/endorsements/:serial/fee', wrap((req, res) =>
+  held('basicSave', req, res, () => rules.updateFee(req.params.contractNo, req.params.serial, req.body))));
 
 app.put('/policies/:contractNo/endorsements/:serial/acceptance', wrap(req =>
   rules.saveAcceptance(req.params.contractNo, req.params.serial, req.body)));
 
-app.post('/policies/:contractNo/endorsements/:serial/actions/:action', wrap(req =>
-  rules.runAction(req.params.contractNo, req.params.serial, req.params.action, req.body)));
+app.post('/policies/:contractNo/endorsements/:serial/actions/:action', wrap((req, res) => {
+  const step = rules.STEPS.find(st => st.action === req.params.action);
+  const run = () => rules.runAction(req.params.contractNo, req.params.serial, req.params.action, req.body);
+  return step ? held(step.latency, req, res, run) : run();
+}));
 
 app.put('/policies/:contractNo/endorsements/:serial/submission', wrap(req =>
   rules.saveSubmission(req.params.contractNo, req.params.serial, req.body)));
 
-app.post('/policies/:contractNo/endorsements/:serial/submit', wrap(req =>
-  rules.submit(req.params.contractNo, req.params.serial, req.body)));
+app.post('/policies/:contractNo/endorsements/:serial/submit', wrap((req, res) =>
+  held('submit', req, res, () => rules.submit(req.params.contractNo, req.params.serial, req.body))));
 
-app.post('/policies/:contractNo/endorsements/:serial/activate', wrap(req =>
-  rules.activate(req.params.contractNo, req.params.serial, req.body)));
+app.post('/policies/:contractNo/endorsements/:serial/activate', wrap((req, res) =>
+  held('activate', req, res, () => rules.activate(req.params.contractNo, req.params.serial, req.body))));
 
 app.post('/policies/:contractNo/endorsements/:serial/reject', wrap(req =>
   rules.reject(req.params.contractNo, req.params.serial, req.body)));

@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: latency is served by the data API and saved after the wait
+
+- **The wait moved into `data-service`.** Search, Endorse/Alter, both Saves, the five quote-build steps (Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement), Submit and Activate now hold their API response for the time set in the developer tools. The Checker, and any call that names no user, never waits.
+- **Save after the wait, not before.** A step is first run as a dry run that is rolled back, so a refusal (30404, 56000, 71037 and so on) still answers at once. A passing step waits, then commits. The record is unchanged while the wait runs, and the response reports the wait in `X-Latency-Waited-Ms`.
+- **Display delay.** The BaNCS web layer shows the result 0.5 s after the response arrives (only when the step waited). The data is already saved by then, and the next step button is on the screen only once the loader is gone, which is what a DAP flow triggers on.
+- **Removed:** the separate `POST /latency/:key` sleep that ran beside the real call, and the timer-based loader (`data-busy-ms`) that had been in progress; its diff was kept outside the repo.
+
 ## 2026-11-04: fee switch-off progress in the developer tools
 
 - **Counter:** the developer tools show "Contracts at zero fee: N of M" with a dot that is grey until every targeted contract is at zero, then green. The bug icon carries the same dot, so it is visible with the panel closed.

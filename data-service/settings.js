@@ -58,7 +58,6 @@ const seconds = key => {
   if (settings.hang[key]) return 0;
   return settings.profile === 'off' ? 0 : Number(settings[settings.profile][key]) || 0;
 };
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 module.exports = {
   STEPS, PROFILES, MAX_SECONDS,
@@ -70,12 +69,6 @@ module.exports = {
   // "Page Unresponsive" dialog; nothing in the page draws it.
   hangMs() {
     return Object.fromEntries(STEPS.filter(st => settings.hang[st.key]).map(st => [st.key, Math.round((Number(settings.hangSeconds[st.key]) || 0) * 1000)]).filter(([, ms]) => ms > 0));
-  },
-  // Wait out the configured time for a step. Resolves with the milliseconds waited.
-  async wait(key) {
-    const ms = Math.round(seconds(key) * 1000);
-    if (ms > 0) await sleep(ms);
-    return ms;
   },
   // body: { profile, normal: {key: seconds}, stress: {key: seconds} } or { reset: true }. Returns an error text or null.
   update(body) {

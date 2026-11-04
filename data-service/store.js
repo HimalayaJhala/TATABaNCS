@@ -28,6 +28,9 @@ load();
 
 module.exports = {
   get: () => state,
+  // A step's dry run (see held() in server.js) is rolled back with these.
+  snapshot: () => JSON.stringify(state),
+  restore: snap => { state = JSON.parse(snap); },
   save,
   reset
 };
