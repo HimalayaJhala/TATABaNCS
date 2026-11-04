@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: the page updates the moment the response arrives
+
+- The 0.5 s hold before showing a result is gone. The loader runs until the API response arrives (after the step's configured wait, with the data already saved) and the screen then updates at once, with the next step's button unlocked.
+- Removes the display delay added earlier today in `bancs-sim/server.js`.
+
 ## 2026-11-04: the five steps always show, in flow order
 
 - **The bar shows all five steps from the start, in the order of the flow:** Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement. Before, Calculate Premium appeared only after the layer and the others sat in the recording's order (Finalise, Lock EBQ, End Sub). The ids are unchanged, so DAP flows that target them are unaffected. Policy Action Details shows the same bar without the layer and premium steps. This departs from the recording's button order at the user's request.

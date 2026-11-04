@@ -66,15 +66,9 @@ async function api(method, url, body) {
 }
 const fmtError = e => `${e.code}*****: ${e.message}`;
 const isChecker = req => !!(req.session.user && req.session.user.kind === 'verifier');
-// A timed step's wait is served by the data API itself, which holds its response for the time set in the developer
-// tools and saves only when that is over. The page shows its loader until the response arrives; the result is shown
-// SHOW_DELAY_MS after it, when the data is already saved. A step that fails, or did not wait, shows at once.
-const SHOW_DELAY_MS = 500;
-async function timed(method, url, body) {
-  const r = await api(method, url, body);
-  if (!r.error && r.waitedMs) await new Promise(done => setTimeout(done, SHOW_DELAY_MS));
-  return r;
-}
+// A timed step's wait is served by the data API itself: it holds its response for the time set in the developer tools
+// and saves only when that is over. The page shows its loader until the response arrives and updates the moment it
+// does, with the data already saved.
 
 // ---- session -------------------------------------------------------------------------------
 const fs = require('fs');
@@ -379,7 +373,7 @@ async function doSearch(req, res, src) {
     partyCode: criteria.partyCode, product: criteria.product, status: criteria.status,
     partyStake: criteria.partyStakeName, parameter: criteria.parameter, branch: criteria.branchCode, book: BOOK
   });
-  const r = await timed('GET', `/policies?${qs}&user=${encodeURIComponent(req.session.user.id)}`);
+  const r = await api('GET', `/policies?${qs}&user=${encodeURIComponent(req.session.user.id)}`);
   render(req, res, 'search', { criteria, results: r.data || [], error: r.error ? fmtError(r.error) : null });
 }
 
@@ -450,7 +444,7 @@ app.post('/policy/:id/endorse-alter', requireLogin, async (req, res) => {
     flash(req, 'error', fmtError({ code: 71037, message: `Endorse/Alter is a Maker step. The Checker (${req.session.user.role}) verifies a submitted quote and activates or rejects it.` }));
     return res.redirect(`/policy/${req.params.id}`);
   }
-  const r = await timed('POST', `/policies/${req.params.id}/endorse-check`, { user: req.session.user.id });
+  const r = await api('POST', `/policies/${req.params.id}/endorse-check`, { user: req.session.user.id });
   if (r.error) {
     if (r.error.code === 56000) return res.redirect(`/policy/${req.params.id}/error/already-exist`);
     flash(req, 'error', fmtError(r.error));
@@ -514,7 +508,7 @@ app.get('/policy/:id/endorse', requireLogin, async (req, res) => {
 
 app.post('/policy/:id/endorse', requireLogin, async (req, res) => {
   const selected = [].concat(req.body.types || []).filter(Boolean);
-  const r = await timed('POST', `/policies/${req.params.id}/endorsements`, {
+  const r = await api('POST', `/policies/${req.params.id}/endorsements`, {
     user: req.session.user.id, types: selected, quoteDate: req.body.quoteDate,
     laterEffectiveDate: req.body.laterEffectiveDate, instanceNumber: req.body.instanceNumber,
     bizagiCaseId: req.body.bizagiCaseId, carmaKey: req.body.carmaKey,
@@ -550,7 +544,7 @@ app.post('/policy/:id/basic-details', requireLogin, async (req, res) => {
     flash(req, 'error', fmtError({ code: 56010, message: 'Basic Details cannot be modified outside an endorsement. Please initiate Endorse/Alter.' }));
     return res.redirect(`/policy/${req.params.id}/basic-details`);
   }
-  const r = await timed('PUT', `/policies/${req.params.id}/endorsements/${serial}/fee`, {
+  const r = await api('PUT', `/policies/${req.params.id}/endorsements/${serial}/fee`, {
     user: req.session.user.id, vatInclusive: req.body.vatInclusive,
     noDealings: req.body.noDealings, amendPotReason: req.body.amendPotReason, removeReason: req.body.removeReason
   });
@@ -715,7 +709,7 @@ app.post('/policy/:id/quote-summary/:action', requireLogin, async (req, res) => 
   const action = req.params.action;
   let r;
   if (STEP_ACTIONS.includes(action)) {
-    r = await timed('POST', `/policies/${id}/endorsements/${serial}/actions/${action}`, { user: req.session.user.id });
+    r = await api('POST', `/policies/${id}/endorsements/${serial}/actions/${action}`, { user: req.session.user.id });
   } else if (action === 'reject-endorsed-quote') {
     r = await api('POST', `/policies/${id}/endorsements/${serial}/reject`, { user: req.session.user.id });
   } else {
@@ -755,8 +749,8 @@ app.post('/policy/:id/quote-submission', requireLogin, async (req, res) => {
   const op = req.body.op;
   let r;
   if (op === 'save') r = await api('PUT', `${base}/submission`, body);
-  else if (op === 'submit') r = await timed('POST', `${base}/submit`, body);
-  else if (op === 'activate') r = await timed('POST', `${base}/activate`, body);
+  else if (op === 'submit') r = await api('POST', `${base}/submit`, body);
+  else if (op === 'activate') r = await api('POST', `${base}/activate`, body);
   else if (op === 'reject') r = await api('POST', `${base}/reject`, body);
   else { flash(req, 'error', fmtError({ code: 48000, message: 'Unknown operation.' })); return res.redirect(here); }
 
