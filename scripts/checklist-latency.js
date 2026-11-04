@@ -6,10 +6,10 @@
 //   - the response takes the configured time and says so in X-Latency-Waited-Ms,
 //   - the record is unchanged part-way through the wait and changed once the response is back,
 //   - the next step is refused at once part-way through (it is only unlocked by the save), and works afterwards.
-// Also: a refused step answers at once and changes nothing; the Checker never waits.
+// Also: the fee switch-off counter counts a contract once the Maker has submitted it with a zero fee; a refused step answers at once and changes nothing; the Checker never waits.
 // Usage: npm run test:latency (needs the demo running). Resets the data and restores the latency table at the end.
 const DATA = 'http://localhost:4000', C = '119900001001', MAKER = 'nzwane', CHECKER = 'dvisser';
-const WAIT = { endorseSave: 2, basicSave: 1, createLayer: 2, calcPremium: 2, endSub: 1, lockEbq: 1, finalise: 1 };   // seconds
+const WAIT = { endorseSave: 2, basicSave: 1, createLayer: 2, calcPremium: 2, endSub: 1, lockEbq: 1, finalise: 1, submit: 1 };   // seconds
 let fails = 0;
 const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${msg}`); if (!cond) fails++; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -92,6 +92,18 @@ async function during(ms, step, probe) {
     const sAnon = await call('GET', `/policies?contractNo=${C}`);
     ok(sMaker.waited === 2000 && sMaker.ms >= 1900 && sMaker.data.length === 1, `search waits for the Maker (${sMaker.ms} ms)`);
     ok(sChecker.waited === 0 && sChecker.ms < 500 && sAnon.waited === 0 && sAnon.ms < 500, 'search does not wait for the Checker, or for a call with no user');
+
+    // The switch-off counter ties to the Maker's Submit of the final endorsement, not to the Checker's Activate.
+    const prog = async () => (await call('GET', '/fee-zero/progress')).data;
+    const p0 = await prog();
+    ok(p0.status === 'idle' && p0.done === 0, `a finalised quote with a zero fee is not counted before Submit (${p0.status}, ${p0.done} of ${p0.target})`);
+    const subBody = { user: MAKER, reinsuranceVerified: 'Yes', allAdminRequirementsReceived: 'Accepted', legalVerification: 'Approved' };
+    const sub = await during(WAIT.submit * 1000, () => call('POST', `/policies/${C}/endorsements/${serial}/submit`, subBody), async () => (await prog()).done);
+    ok(!sub.result.error && sub.seen === 0, `Submit: not counted part-way through its wait (${sub.seen})${sub.result.error ? ' ' + sub.result.error.message : ''}`);
+    const p1 = await prog();
+    ok(p1.done === 1 && p1.status === 'running' && p1.pending.indexOf(C) < 0, `after Submit the contract counts and tracking has started, with no Activate (${p1.done} of ${p1.target}, ${p1.status})`);
+    const rej = await call('POST', `/policies/${C}/endorsements/${serial}/reject`, { user: CHECKER });
+    ok(!rej.error && (await prog()).done === 0, 'if the Checker rejects the submitted quote, it stops counting');
 
     // Latency Off: no wait anywhere.
     await call('PUT', '/settings/latency', { profile: 'off' });

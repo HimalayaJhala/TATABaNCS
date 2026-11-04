@@ -542,6 +542,7 @@ async function submit(contractNo, serial, body) {
   e.submittedBy = u.id;
   if (!isClosed(contractNo)) mail.notify('verify', e);
   log(e, u.id, 'submit');
+  feeZero.feeApplied(contractNo);
   store.save();
   return e;
 }

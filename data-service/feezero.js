@@ -1,8 +1,8 @@
 // Fee switch-off progress: how many of the targeted contracts have reached a zero fee.
 //
-// The count is derived from the fee records (store.fees), which only change when an endorsement is activated, so
-// it is the committed position, not a quote still waiting for the Checker. A run begins when the first targeted
-// fee reaches zero through an activation, and ends when every target is at zero (complete), when the tracking
+// A contract counts as soon as the Maker has submitted its final endorsement with a zero fee (it then waits for the
+// Checker), or once its fee record is at zero. A quote the Checker rejects stops counting. A run begins when the
+// first targeted contract counts, and ends when every target is at zero (complete), when the tracking
 // window runs out (expired) or when someone stops it (stopped). It can also be started by hand, and restarted after it ends. Reset data clears the run with the rest of the state.
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +11,13 @@ const store = require('./store');
 const WINDOW_MINUTES = Number(process.env.FEE_ZERO_WINDOW_MINUTES) > 0 ? Number(process.env.FEE_ZERO_WINDOW_MINUTES) : 60;
 
 const run = () => (store.get().feeZero = store.get().feeZero || { targets: null, startedAt: null, end: null });
-const isZero = f => !!f && f.vatInclusive === 0;
+// Zero on the fee record (activated), or submitted by the Maker with a zero fee and not rejected since.
+function atZero(contractNo) {
+  const st = store.get();
+  const f = st.fees.find(x => x.contractNo === contractNo);
+  if (f && f.vatInclusive === 0) return true;
+  return st.endorsements.some(e => e.contractNo === contractNo && ['submitted', 'approved'].includes(e.stage) && e.pendingFee && e.pendingFee.vatInclusive === 0);
+}
 
 // Default scope: the work list's contracts that still carry a fee, so the ones already at zero in the seed are not counted.
 function seededTargets() {
@@ -23,8 +29,7 @@ const targets = () => run().targets || seededTargets();
 
 function progress() {
   const r = run(), list = targets();
-  const fees = Object.fromEntries(store.get().fees.map(f => [f.contractNo, f]));
-  const zero = list.filter(c => isZero(fees[c]));
+  const zero = list.filter(atZero);
   const now = Date.now();
   if (r.startedAt && !r.end) {
     if (zero.length >= list.length && list.length) r.end = { reason: 'complete', at: now };
@@ -35,17 +40,17 @@ function progress() {
   return {
     status, complete: status === 'complete',
     target: list.length, done: zero.length, remaining: list.length - zero.length,
-    pending: list.filter(c => !isZero(fees[c])),
+    pending: list.filter(c => !atZero(c)),
     windowMinutes: WINDOW_MINUTES,
     startedAt: r.startedAt ? new Date(r.startedAt).toISOString() : null,
     endedAt: r.end ? new Date(r.end.at).toISOString() : null
   };
 }
 
-// Called after an activation has applied its fee. The first targeted contract at zero starts the run.
+// Called after a submit or an activation. The first targeted contract at zero starts the run.
 function feeApplied(contractNo) {
   const r = run();
-  if (!r.startedAt && targets().includes(contractNo) && isZero(store.get().fees.find(f => f.contractNo === contractNo))) {
+  if (!r.startedAt && targets().includes(contractNo) && atZero(contractNo)) {
     r.startedAt = Date.now();
   }
   progress();

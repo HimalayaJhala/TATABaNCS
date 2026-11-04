@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: the switch-off counter counts on the Maker's Submit
+
+- A contract now counts when the Maker submits its final endorsement with a zero fee, not when the Checker activates it. The first such Submit starts tracking; a quote the Checker rejects stops counting; an activated zero fee still counts. A finalised quote that has not been submitted does not count.
+- `data-service/feezero.js` derives this from the fee record or from a submitted (or approved) endorsement whose pending fee is zero; `rules.submit` triggers the start.
+- **Tests:** `npm run test:latency` checks that a finalised quote is not counted, that Submit counts it and starts tracking without an Activate, and that a Checker rejection removes it.
+
 ## 2026-11-04: step buttons are unlocked by the saved stage
 
 - **Greyed until their turn:** Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement are disabled unless the quote's saved stage unlocks them, so each step's response (saved after its wait) is what makes the next button clickable. The Checker sees all five greyed. EAC, Reject Sub Alteration, Reject Endorsed Quote, Follow up report, Endorsement Detail and the other buttons stay clickable.
