@@ -3,6 +3,14 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: fee switch-off progress in the developer tools
+
+- **Counter:** the developer tools show "Contracts at zero fee: N of M" with a dot that is grey until every targeted contract is at zero, then green. The bug icon carries the same dot, so it is visible with the panel closed.
+- **Backend:** new `data-service/feezero.js`. Progress is derived from the fee records, so it counts committed (activated) fees only. `GET /fee-zero/progress` returns target, done, remaining, status (`idle`, `running`, `complete`, `stopped`, `expired`) and the contracts still pending. `POST /fee-zero/stop` ends a run; `PUT /fee-zero/target` narrows the scope.
+- **When it polls:** the first activation that leaves a targeted fee at zero starts the run. The page polls every 3 seconds only while it is running, and stops on completion, after 60 minutes (`FEE_ZERO_WINDOW_MINUTES`), or on **Stop live tracking**. While idle it reads once on page load and when the panel opens.
+- **Default scope:** the 23 work list contracts that carry a fee in the seed; the 3 already at zero are not counted.
+- Reset data, and clearing all endorsements, start the run over.
+
 ## 2026-10-30: Google Sheets dates
 
 - **Google Sheets:** the copied formula wraps IMPORTDATA in MAP/LAMBDA, so Declaration Signed Date (and the transition list's dates) shows as 04/08/2026 instead of the serial 46238. Only whole numbers in the 2000–2049 date range are converted, and no code or amount in either list falls there.

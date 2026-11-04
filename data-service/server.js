@@ -5,6 +5,7 @@ const store = require('./store');
 const rules = require('./rules');
 const settings = require('./settings');
 const mail = require('./mail');
+const feeZero = require('./feezero');
 
 const PORT = Number(process.env.DATA_PORT || 4000);
 
@@ -99,6 +100,7 @@ app.post('/admin/clear-endorsements', wrap(req => {
     swap(st.advisers, 'contractNo', seed.advisers);
     swap(st.policies, 'contractNo', seed.policies);
   }
+  if (!contractNo) st.feeZero = null;     // the fees are back at the seed, so the switch-off run starts over
   store.save();
   console.log(`[data-service] cleared ${gone.length} endorsement quote(s)${contractNo ? ' on ' + contractNo : ''}`);
   return { ok: true, cleared: gone.length, contracts: [...touched] };
@@ -197,6 +199,15 @@ app.post('/policies/:contractNo/endorsements/:serial/reject', wrap(req =>
   rules.reject(req.params.contractNo, req.params.serial, req.body)));
 
 // Work list rows as seeded (the Excel workbook is generated from the same rows).
+// Fee switch-off progress: targeted contracts at a zero fee, for the live counter in the developer tools.
+app.get('/fee-zero/progress', wrap(() => feeZero.progress()));
+app.post('/fee-zero/stop', wrap(() => feeZero.stop()));
+app.put('/fee-zero/target', wrap(req => {
+  const r = feeZero.setTargets((req.body || {}).contracts);
+  if (r.error) throw new rules.BancsError(56013, r.error);
+  return r.progress;
+}));
+
 app.get('/worklist', wrap(() => db().worklist));
 app.get('/transition-list', wrap(() => db().transitionList));
 

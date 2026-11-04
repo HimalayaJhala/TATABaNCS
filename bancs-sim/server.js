@@ -281,6 +281,16 @@ app.get('/login/dummy-data/:kind(csv|transition-csv)', async (req, res) => {
   const ExcelJS = require('exceljs');
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(path.join(__dirname, '..', 'worklist', DUMMY_CSV[req.params.kind]));
+// Developer menu: fee switch-off progress (targeted contracts at a zero fee) for the live counter, and its Stop button.
+app.get('/dev/fee-zero/progress', async (req, res) => {
+  const r = await api('GET', '/fee-zero/progress');
+  res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);
+});
+app.post('/dev/fee-zero/stop', async (req, res) => {
+  const r = await api('POST', '/fee-zero/stop');
+  res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);
+});
+
   const ws = wb.worksheets[0];
   const cell = v => { const s = v === null || v === undefined ? '' : String(v && v.richText ? v.richText.map(t => t.text).join('') : v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const lines = [];

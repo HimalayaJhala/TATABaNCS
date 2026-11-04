@@ -416,3 +416,9 @@ body.is-loading .btn { pointer-events: none; }
 button.lookup { border: 0; padding: 0; cursor: pointer; }
 #requestor-advisors tr.new-row td { background: #eef6e6; }
 #requestor-advisors tr.old-row td { background: #f3f3f3; color: #777; }
+
+/* ---- fee switch-off progress: grey until every targeted contract is at a zero fee, then green ---- */
+.fz-dot { display: inline-block; width: 10px; height: 10px; margin-right: 8px; border-radius: 50%; background: #8c959f; vertical-align: middle; }
+.fz-dot[data-state="complete"] { background: #1a7f37; }
+.dev-btn[data-fee-zero]::after { content: ''; position: absolute; right: -2px; bottom: -2px; width: 8px; height: 8px; border-radius: 50%; background: #8c959f; border: 1px solid #fff; }
+.dev-btn[data-fee-zero="complete"]::after { background: #1a7f37; }

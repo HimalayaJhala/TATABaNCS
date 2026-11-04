@@ -3,6 +3,7 @@
 const store = require('./store');
 const mail = require('./mail');
 const calc = require('./calc');
+const feeZero = require('./feezero');
 
 class BancsError extends Error {
   constructor(code, message, status = 422) {
@@ -579,6 +580,7 @@ async function activate(contractNo, serial, body) {
     f.vatInclusive = e.pendingFee.vatInclusive;
     f.vatExclusive = e.pendingFee.vatExclusive;
     f.effectiveDate = e.pendingFee.effectiveDate;
+    feeZero.feeApplied(contractNo);
   }
   if (e.pendingBasic) Object.assign(policy(contractNo).basic, e.pendingBasic);
   if (e.sharing && e.sharing.contribution) {

@@ -8,6 +8,15 @@
     <span class="demo-note" id="reset-note">Restores every policy and quote to the seed. Latency settings are kept.</span>
   </div>
 
+  <section class="demo-section" id="sec-fee-zero" data-block="section">
+    <h3 class="demo-h">Fee switch-off progress <span class="demo-tag">live</span></h3>
+    <div class="demo-row" id="bar-fee-zero" data-block="button-bar">
+      <span class="demo-label"><i class="fz-dot" id="fee-zero-indicator" data-state="idle" aria-hidden="true"></i><span id="fee-zero-count">Contracts at zero fee: &ndash;</span></span>
+      <button class="btn" type="button" id="btn-fee-zero-stop" hidden>Stop live tracking</button>
+      <span class="demo-note" id="fee-zero-note" role="status">Waiting for the first contract to reach a zero fee.</span>
+    </div>
+  </section>
+
   <section class="demo-section" id="sec-test-data">
     <h3 class="demo-h">Test data <span class="demo-tag">synthetic, no client PII</span></h3>
     <div class="demo-row" id="bar-dummy-data" data-block="button-bar">
