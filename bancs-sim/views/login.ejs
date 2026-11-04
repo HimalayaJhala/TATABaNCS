@@ -12,8 +12,8 @@
     <h3 class="demo-h">Fee switch-off progress <span class="demo-tag">live</span></h3>
     <div class="demo-row" id="bar-fee-zero" data-block="button-bar">
       <span class="demo-label"><i class="fz-dot" id="fee-zero-indicator" data-state="idle" aria-hidden="true"></i><span id="fee-zero-count">Contracts at zero fee: &ndash;</span></span>
-      <button class="btn" type="button" id="btn-fee-zero-stop" hidden>Stop live tracking</button>
-      <span class="demo-note" id="fee-zero-note" role="status">Waiting for the first contract to reach a zero fee.</span>
+      <span class="demo-actions"><button class="btn" type="button" id="btn-fee-zero-start">Start live tracking</button><button class="btn" type="button" id="btn-fee-zero-stop" hidden>Stop live tracking</button></span>
+      <span class="demo-note" id="fee-zero-note" role="status">Starts by itself when the first contract reaches a zero fee, or press Start live tracking.</span>
     </div>
   </section>
 

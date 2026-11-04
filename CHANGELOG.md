@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: Start live tracking, and a fix to the progress routes
+
+- **Start live tracking** (restart after it ends) joins Stop in the Fee switch-off progress section. Tracking still starts by itself on the first activation that leaves a targeted fee at zero; Start begins it now, so the counter goes live without waiting, and brings it back after Stop or the one-hour limit. `POST /fee-zero/start`.
+- **Fix:** the earlier commit placed the `/dev/fee-zero/*` routes inside the Google Sheets CSV handler and split a comment in `bancs.js` (the hunks were staged against the wrong line numbers). The routes were never registered, so the counter stayed at "Contracts at zero fee: –". They are now top-level routes and the comment is whole.
+
 ## 2026-11-04: test for save-after-wait and the step chain
 
 - **`npm run test:latency`** (new, API level, no browser). With short waits it walks Endorse/Alter Save, Basic Details Save, Acceptance, Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement, and checks for each timed step that the response takes the configured time and reports it in `X-Latency-Waited-Ms`, that the record is unchanged part-way through and changed after, and that the next step is refused at once while the current one runs (30402 to 30405) and is only unlocked by the save.

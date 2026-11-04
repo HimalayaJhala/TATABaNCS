@@ -220,6 +220,7 @@ app.post('/policies/:contractNo/endorsements/:serial/reject', wrap(req =>
 // Work list rows as seeded (the Excel workbook is generated from the same rows).
 // Fee switch-off progress: targeted contracts at a zero fee, for the live counter in the developer tools.
 app.get('/fee-zero/progress', wrap(() => feeZero.progress()));
+app.post('/fee-zero/start', wrap(() => feeZero.start()));
 app.post('/fee-zero/stop', wrap(() => feeZero.stop()));
 app.put('/fee-zero/target', wrap(req => {
   const r = feeZero.setTargets((req.body || {}).contracts);

@@ -3,7 +3,7 @@
 // The count is derived from the fee records (store.fees), which only change when an endorsement is activated, so
 // it is the committed position, not a quote still waiting for the Checker. A run begins when the first targeted
 // fee reaches zero through an activation, and ends when every target is at zero (complete), when the tracking
-// window runs out (expired) or when someone stops it (stopped). Reset data clears the run with the rest of the state.
+// window runs out (expired) or when someone stops it (stopped). It can also be started by hand, and restarted after it ends. Reset data clears the run with the rest of the state.
 const fs = require('fs');
 const path = require('path');
 const store = require('./store');
@@ -51,6 +51,14 @@ function feeApplied(contractNo) {
   progress();
 }
 
+// Begins (or restarts) tracking now, without waiting for the first activation. The window runs from this moment.
+function start() {
+  const r = run();
+  r.startedAt = Date.now(); r.end = null;
+  store.save();
+  return progress();
+}
+
 function stop() {
   const r = run();
   progress();
@@ -71,4 +79,4 @@ function setTargets(contracts) {
   return { progress: progress() };
 }
 
-module.exports = { progress, feeApplied, stop, setTargets, WINDOW_MINUTES };
+module.exports = { progress, feeApplied, start, stop, setTargets, WINDOW_MINUTES };

@@ -168,15 +168,12 @@
     window.addEventListener('pageshow', function () { set(false); });
   })();
 
-  // Developer tools, Google Sheets: copy an IMPORTDATA formula for the work list's CSV, then let the link open a new
-  // sheet. Pasting the formula into A1 loads the data. IMPORTDATA turns dd/mm/yyyy into a bare serial (46238), so
-  // whole numbers in the 2000-2049 date range are written back as dd/mm/yyyy; no code or amount in the lists falls there.
   // Developer tools, fee switch-off progress. One read when the page loads and whenever the panel opens; it polls
-  // every few seconds only while a run is in progress (from the first contract at zero until all are, the hour is up,
-  // or Stop live tracking is pressed). The dot and the bug button are grey until every targeted contract is at zero.
+  // every few seconds only while a run is in progress (from the first contract at zero, or Start live tracking, until
+  // all are at zero, the hour is up, or Stop live tracking is pressed). The dot and the bug button are grey until every targeted contract is at zero.
   (function () {
     var dot = document.getElementById('fee-zero-indicator'), count = document.getElementById('fee-zero-count');
-    var note = document.getElementById('fee-zero-note'), stop = document.getElementById('btn-fee-zero-stop');
+    var note = document.getElementById('fee-zero-note'), stop = document.getElementById('btn-fee-zero-stop'), start = document.getElementById('btn-fee-zero-start');
     var btn = document.getElementById('btn-dev-menu'), timer = null;
     if (!dot || !count) return;
     function show(p) {
@@ -185,12 +182,14 @@
       dot.setAttribute('data-state', p.complete ? 'complete' : 'pending');
       if (btn) { btn.setAttribute('data-fee-zero', p.complete ? 'complete' : 'pending'); btn.title = 'Developer tools: ' + of + ' contracts at zero fee'; }
       stop.hidden = p.status !== 'running';
+      start.hidden = p.status === 'running' || p.status === 'complete';
+      start.textContent = p.status === 'idle' ? 'Start live tracking' : 'Restart live tracking';
       note.textContent = {
-        idle: 'Waiting for the first contract to reach a zero fee.',
+        idle: 'Starts by itself when the first contract reaches a zero fee, or press Start live tracking.',
         running: 'In progress: ' + p.remaining + ' to go. Updates every few seconds for up to ' + p.windowMinutes + ' minutes.',
         complete: 'Complete: every targeted contract is at a zero fee.',
-        stopped: 'Live tracking was stopped at ' + of + '. Reset data to start again.',
-        expired: 'Live tracking ended after ' + p.windowMinutes + ' minutes at ' + of + '. Reset data to start again.'
+        stopped: 'Live tracking was stopped at ' + of + '. Press Restart live tracking to count again.',
+        expired: 'Live tracking ended after ' + p.windowMinutes + ' minutes at ' + of + '. Press Restart live tracking to count again.'
       }[p.status];
       if (p.status === 'running' && !timer) timer = setInterval(read, 3000);
       if (p.status !== 'running' && timer) { clearInterval(timer); timer = null; }
@@ -198,14 +197,19 @@
     function read() {
       return fetch('/dev/fee-zero/progress').then(function (r) { return r.json(); }).then(function (p) { if (!p.error) show(p); }).catch(function () {});
     }
-    stop.addEventListener('click', function () {
-      fetch('/dev/fee-zero/stop', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (p) { if (!p.error) show(p); });
-    });
+    function send(action) {
+      return function () { fetch('/dev/fee-zero/' + action, { method: 'POST' }).then(function (r) { return r.json(); }).then(function (p) { if (!p.error) show(p); }); };
+    }
+    stop.addEventListener('click', send('stop'));
+    start.addEventListener('click', send('start'));
     if (btn) btn.addEventListener('click', read);
     window.addEventListener('pageshow', read);
     read();
   })();
 
+  // Developer tools, Google Sheets: copy an IMPORTDATA formula for the work list's CSV, then let the link open a new
+  // sheet. Pasting the formula into A1 loads the data. IMPORTDATA turns dd/mm/yyyy into a bare serial (46238), so
+  // whole numbers in the 2000-2049 date range are written back as dd/mm/yyyy; no code or amount in the lists falls there.
   Array.prototype.forEach.call(document.querySelectorAll('[data-gsheet]'), function (a) {
     a.addEventListener('click', function () {
       var formula = '=MAP(IMPORTDATA("' + a.getAttribute('data-gsheet') + '", ",", "en_GB"), LAMBDA(x, IF(AND(ISNUMBER(x), x >= 36526, x <= 54789, x = INT(x)), TEXT(x, "dd/mm/yyyy"), x)))';
