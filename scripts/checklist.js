@@ -140,6 +140,9 @@ async function accept(p, contract, date) {
 
   // Endr Quote Summary (SOP 14-19): a step button is clickable only when the saved stage unlocks it; called directly, a step out of order is refused with the next step named
   await step(p, '#nav-endr-quote-summary');
+  const FLOW_IDS = ['btn-create-refresh-layer', 'btn-calculate-premium', 'btn-end-sub-endorsement', 'btn-lock-ebq', 'btn-finalise-endorsement'];
+  const flowBar = async () => (await p.$$eval('#endorsement-action-bar button[id]', bs => bs.map(b => b.id))).filter(id => FLOW_IDS.includes(id));
+  ok((await flowBar()).join(',') === FLOW_IDS.join(','), 'the five steps show from the start, in the order of the flow: Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement');
   ok(await p.$eval('#btn-finalise-endorsement', e => e.disabled), 'Finalise Endorsement is greyed on a new quote: only Create or Refresh Layer is unlocked (' + (await enabledSteps(p)).join(', ') + ')');
   const early = (await fetch(`${DATA}/policies/${C}/endorsements/1/actions/finalise`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json())).error || {};
   ok(early.code === 30405 && early.message.includes('The next step is Create or Refresh Layer') && (await hdr(p)).includes('DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started'), `Finalise called first is refused and the quote stays a draft: ${early.code}`);
@@ -148,6 +151,7 @@ async function accept(p, contract, date) {
   const r = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/lock-ebq`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json());
   ok(r.error && r.error.code === 30404, `server rejects Lock EBQ posted out of order: ${r.error && r.error.code}`);
   for (const btn of ['#btn-create-refresh-layer', '#btn-calculate-premium', '#btn-end-sub-endorsement', '#btn-lock-ebq', '#btn-finalise-endorsement']) {
+    ok((await flowBar()).join(',') === FLOW_IDS.join(','), `before ${btn}: all five steps are on the bar in flow order`);
     ok((await enabledSteps(p)).filter(id => id !== 'btn-start-sub-endorsement').join(',') === btn.slice(1), `before ${btn}: it is the only step button unlocked (${(await enabledSteps(p)).join(', ')}; Start Sub Endorsement is not a step in this environment)`);
     await p.$eval(btn, e => e.scrollIntoView());
     const t0 = Date.now();

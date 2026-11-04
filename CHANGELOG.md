@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: the five steps always show, in flow order
+
+- **The bar shows all five steps from the start, in the order of the flow:** Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement. Before, Calculate Premium appeared only after the layer and the others sat in the recording's order (Finalise, Lock EBQ, End Sub). The ids are unchanged, so DAP flows that target them are unaffected. Policy Action Details shows the same bar without the layer and premium steps. This departs from the recording's button order at the user's request.
+- **Only the next step is unlocked.** `rules.enabledSteps` now returns just the forward step, so Create or Refresh Layer greys once the layer exists. A fee changed after Calculate Premium unlocks Calculate Premium again and keeps End Sub Endorsement greyed. A direct API call can still refresh an earlier step.
+- Start Sub Endorsement keeps its place after the five from the layer onward. The ten-button bar can wrap to a second row at narrow widths.
+- **Tests:** `npm test` checks the order of the five and which one is unlocked before each click.
+
 ## 2026-11-04: the switch-off counter counts on the Maker's Submit
 
 - A contract now counts when the Maker submits its final endorsement with a zero fee, not when the Checker activates it. The first such Submit starts tracking; a quote the Checker rejects stops counting; an activated zero fee still counts. A finalised quote that has not been submitted does not count.

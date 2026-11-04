@@ -410,11 +410,15 @@ function saveAcceptance(contractNo, serial, body) {
   return e;
 }
 
-// The Endr Quote Summary steps the quote can take now, in the order of the SOP: only the step the saved stage unlocks.
-// A fee changed after Calculate Premium leaves End Sub Endorsement locked until the premium is calculated again.
+// The one Endr Quote Summary step the quote can take now, in the order of the flow: Create or Refresh Layer, Calculate
+// Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement. Only the saved stage unlocks the next one. A fee
+// changed after Calculate Premium leaves the premium out of date: Calculate Premium is unlocked again and End Sub
+// Endorsement stays locked until it has run. (runAction still accepts a refresh of an earlier step called directly.)
+const FLOW_ORDER = ['started', 'layer', 'premium', 'subEnded', 'locked', 'finalised'];
 function enabledSteps(e) {
   if (e.status !== S.DRAFT) return [];
-  return STEPS.filter(st => st.from.includes(e.stage) && !(st.action === 'end-sub-endorsement' && e.calc && e.calc.stale)).map(st => st.action);
+  if (e.stage === 'premium' && e.calc && e.calc.stale) return ['calculate-premium'];
+  return STEPS.filter(st => st.from.includes(e.stage) && FLOW_ORDER.indexOf(st.to) === FLOW_ORDER.indexOf(e.stage) + 1).map(st => st.action);
 }
 
 async function runAction(contractNo, serial, action, body) {

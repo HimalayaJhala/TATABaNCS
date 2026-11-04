@@ -190,12 +190,11 @@ async function loadCtx(req, contractNo, active) {
   return { ...view, endorsement, header, nav };
 }
 
-// Endorsement action bar, as in the recording: every button keeps its place and id. The five steps (Create or Refresh
-// Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement) are greyed until the saved stage
+// Endorsement action bar: every button keeps its id. The five steps (Create or Refresh Layer, Calculate Premium,
+// End Sub Endorsement, Lock EBQ, Finalise Endorsement) always show in that order and are greyed until the saved stage
 // unlocks them, so each step's response is what makes the next button clickable; they are greyed for the Checker too.
 // rules.js still refuses a step taken out of order or by the wrong persona if it is called directly.
-// The first slot changes from Create or Refresh Layer to Calculate Premium. Once finalised the bar
-// shrinks to the post-submission set.
+// Once finalised the bar shrinks to the post-submission set.
 const BAR_BUTTONS = {
   'create-layer': ['btn-create-refresh-layer', 'Create or Refresh Layer'],
   'calculate-premium': ['btn-calculate-premium', 'Calculate Premium'],
@@ -210,13 +209,15 @@ const BAR_BUTTONS = {
   'endorsement-detail': ['btn-endorsement-detail', 'Endorsement Detail']
 };
 
+// The five steps always show, in the order of the flow, greyed until the saved stage unlocks them (see STEP_BUTTONS).
+// Start Sub Endorsement keeps its place after them from the layer onward. Once finalised the bar shrinks.
+const FLOW = ['create-layer', 'calculate-premium', 'end-sub-endorsement', 'lock-ebq', 'finalise'];
 const BAR_BY_STAGE = {
-  //        slots in screen order
-  started: ['create-layer', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
-  layer: ['calculate-premium', 'start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
-  premium: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
-  subEnded: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement'],
-  locked: ['start-sub-endorsement', 'finalise', 'lock-ebq', 'end-sub-endorsement']
+  started: FLOW,
+  layer: [...FLOW, 'start-sub-endorsement'],
+  premium: [...FLOW, 'start-sub-endorsement'],
+  subEnded: [...FLOW, 'start-sub-endorsement'],
+  locked: [...FLOW, 'start-sub-endorsement']
 };
 const ALWAYS_ON = ['eac', 'reject-sub-alteration', 'reject-endorsed-quote', 'follow-up-report'];
 
@@ -229,10 +230,8 @@ function actionBar(e, onSummary, checker) {
   // Finalised or submitted: the quote can still be rejected; Activate is on Endr Quote Submission.
   if (e.stage === 'finalised' || e.stage === 'submitted') return [button('reject-endorsed-quote'), button('follow-up-report')];
   if (['approved', 'rejected'].includes(e.stage)) return [button('follow-up-report')];
-  let slots = BAR_BY_STAGE[e.stage];
-  // After a fee change the calculation is out of date: Calculate Premium comes back as the first slot.
-  if (e.stage === 'premium' && e.calc && e.calc.stale) slots = ['calculate-premium', ...slots];
-  // Policy Action Details shows the same bar without the first (layer/premium) slot.
+  const slots = BAR_BY_STAGE[e.stage];
+  // Policy Action Details shows the same bar without the layer and premium steps.
   const shown = onSummary ? slots : slots.filter(a => a !== 'create-layer' && a !== 'calculate-premium');
   return [...shown, ...ALWAYS_ON, 'endorsement-detail'].map(button);
 }
