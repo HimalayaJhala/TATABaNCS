@@ -410,6 +410,13 @@ function saveAcceptance(contractNo, serial, body) {
   return e;
 }
 
+// The Endr Quote Summary steps the quote can take now, in the order of the SOP: only the step the saved stage unlocks.
+// A fee changed after Calculate Premium leaves End Sub Endorsement locked until the premium is calculated again.
+function enabledSteps(e) {
+  if (e.status !== S.DRAFT) return [];
+  return STEPS.filter(st => st.from.includes(e.stage) && !(st.action === 'end-sub-endorsement' && e.calc && e.calc.stale)).map(st => st.action);
+}
+
 async function runAction(contractNo, serial, action, body) {
   const u = user(body.user);
   makerOnly(u, 'Endr Quote Summary steps');
@@ -619,7 +626,7 @@ function reject(contractNo, serial, body) {
 
 module.exports = {
   BancsError, S, SUB, STEPS, SUBMISSION_FIELDS,
-  user, policy, endorsementsOf, endorsement, fee, blocking, submissionOf,
+  user, policy, endorsementsOf, endorsement, enabledSteps, fee, blocking, submissionOf,
   checkCanEndorse, createEndorsement, updateFee, saveAcceptance, runAction,
   saveSubmission, submit, activate, reject,
   stageAdviserChange, clearAdviserChange, IMED_TYPE, SALES_CODE_TYPES, DISTRIBUTION_CHANNELS, ADVISOR_TYPES,

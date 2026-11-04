@@ -190,7 +190,7 @@ app.post('/policies/:contractNo/endorsements/:serial/sharing-commit', wrap(req =
 
 app.get('/policies/:contractNo/endorsements/:serial', wrap(req => {
   const e = rules.endorsement(req.params.contractNo, req.params.serial);
-  return { ...e, submissionView: rules.submissionOf(e) };
+  return { ...e, submissionView: rules.submissionOf(e), stepsEnabled: rules.enabledSteps(e) };
 }));
 
 app.put('/policies/:contractNo/endorsements/:serial/fee', wrap((req, res) =>

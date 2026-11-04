@@ -190,8 +190,10 @@ async function loadCtx(req, contractNo, active) {
   return { ...view, endorsement, header, nav };
 }
 
-// Endorsement action bar, as in the recording: every button keeps its place and id and is clickable;
-// rules.js refuses a step taken out of order or by the wrong persona, and the error names the next step.
+// Endorsement action bar, as in the recording: every button keeps its place and id. The five steps (Create or Refresh
+// Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement) are greyed until the saved stage
+// unlocks them, so each step's response is what makes the next button clickable; they are greyed for the Checker too.
+// rules.js still refuses a step taken out of order or by the wrong persona if it is called directly.
 // The first slot changes from Create or Refresh Layer to Calculate Premium. Once finalised the bar
 // shrinks to the post-submission set.
 const BAR_BUTTONS = {
@@ -218,8 +220,12 @@ const BAR_BY_STAGE = {
 };
 const ALWAYS_ON = ['eac', 'reject-sub-alteration', 'reject-endorsed-quote', 'follow-up-report'];
 
-function actionBar(e, onSummary) {
-  const button = action => ({ action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1] });
+const STEP_BUTTONS = ['create-layer', 'calculate-premium', 'end-sub-endorsement', 'lock-ebq', 'finalise'];
+function actionBar(e, onSummary, checker) {
+  const button = action => ({
+    action, id: BAR_BUTTONS[action][0], label: BAR_BUTTONS[action][1],
+    enabled: !STEP_BUTTONS.includes(action) || (!checker && (e.stepsEnabled || []).includes(action))
+  });
   // Finalised or submitted: the quote can still be rejected; Activate is on Endr Quote Submission.
   if (e.stage === 'finalised' || e.stage === 'submitted') return [button('reject-endorsed-quote'), button('follow-up-report')];
   if (['approved', 'rejected'].includes(e.stage)) return [button('follow-up-report')];
@@ -387,7 +393,7 @@ app.get('/policy/:id', requireLogin, async (req, res) => {
   const ctx = await loadCtx(req, req.params.id, 'policy-action-details');
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   render(req, res, 'policy', {
-    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false) : null,
+    ...ctx, bar: ctx.endorsement ? actionBar(ctx.endorsement, false, isChecker(req)) : null,
     breadcrumb: 'Home > Policy Servicing > Policy Action Details'
   });
 });
@@ -693,7 +699,7 @@ app.get('/policy/:id/quote-summary', requireLogin, async (req, res) => {
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   if (!needEndorsement(req, res, ctx)) return;
   render(req, res, 'quote-summary', {
-    ...ctx, bar: actionBar(ctx.endorsement, true), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
+    ...ctx, bar: actionBar(ctx.endorsement, true, isChecker(req)), breadcrumb: 'Home > Policy Servicing > Endr Quote Summary'
   });
 });
 

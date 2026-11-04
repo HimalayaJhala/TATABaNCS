@@ -166,12 +166,10 @@ async function search(p, fields) {
   await p.goto(`${B}/policy/${C}/endorse`); await p.select('#endorsement-types-available', 'Change Advisor Details'); await p.click('#btn-move-right'); await step(p, '#btn-save');
   await p.goto(`${B}/policy/${C}/acceptance`); await step(p, '#acceptance-serial-1'); await p.select('#application-accepted', 'Yes'); await p.type('#acceptance-date', '04/08/2026'); await step(p, '#btn-save');
   await step(p, '#nav-endr-quote-summary'); await step(p, '#btn-create-refresh-layer'); await step(p, '#btn-calculate-premium');
-  await p.$eval('#btn-lock-ebq', e => e.scrollIntoView()); await step(p, '#btn-lock-ebq');
-  const lockErr = await p.$eval('#error-message', e => e.textContent).catch(() => '');
-  ok(lockErr.includes('30404') && lockErr.includes('The next step is End Sub Endorsement'), `Lock EBQ clicked too early is refused and names the next step: "${lockErr}"`);
+  ok(await p.$eval('#btn-lock-ebq', e => e.disabled), 'Lock EBQ is greyed after Calculate Premium: only End Sub Endorsement is unlocked');
   const post = (action) => fetch(`${DATA}/policies/${C}/endorsements/1/actions/${action}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(r => r.json());
   let r1 = await post('lock-ebq');
-  ok(r1.error && r1.error.code === 30404 && r1.error.message.includes('The next step is End Sub Endorsement'), 'Lock EBQ too early names the step to take first');
+  ok(r1.error && r1.error.code === 30404 && r1.error.message.includes('The next step is End Sub Endorsement'), 'Lock EBQ called directly too early is refused and names the step to take first');
   await step(p, '#btn-end-sub-endorsement');
   ok((await p.$$eval('#endorsement-action-bar button[id]', bs => bs.filter(b => !b.disabled).map(b => b.id))).includes('btn-lock-ebq'), 'Lock EBQ is enabled straight after End Sub Endorsement');
   r1 = await post('end-sub-endorsement');

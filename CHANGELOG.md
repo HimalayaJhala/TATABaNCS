@@ -3,6 +3,14 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: step buttons are unlocked by the saved stage
+
+- **Greyed until their turn:** Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement are disabled unless the quote's saved stage unlocks them, so each step's response (saved after its wait) is what makes the next button clickable. The Checker sees all five greyed. EAC, Reject Sub Alteration, Reject Endorsed Quote, Follow up report, Endorsement Detail and the other buttons stay clickable.
+- **Single source of truth:** `rules.enabledSteps(e)` in `data-service` works out the unlocked steps from the same step table the server uses to refuse a wrong call, and the endorsement response carries it as `stepsEnabled`. After a fee change that leaves the premium out of date, End Sub Endorsement stays locked until Calculate Premium is run again.
+- **The server rules are unchanged.** A direct API call out of order is still refused with 30401 to 30410, and the Checker with 71037.
+- **This reverses the 2026-10-30 decision** to leave every action button clickable, at the user's request: the flow, not a refusal message, should say what comes next.
+- **Tests:** `npm test` and `npm run test:forms` now check that the buttons are greyed and that only the next step is unlocked; the out-of-order refusals are checked on the API.
+
 ## 2026-11-04: Start live tracking, and a fix to the progress routes
 
 - **Start live tracking** (restart after it ends) joins Stop in the Fee switch-off progress section. Tracking still starts by itself on the first activation that leaves a targeted fee at zero; Start begins it now, so the counter goes live without waiting, and brings it back after Stop or the one-hour limit. `POST /fee-zero/start`.

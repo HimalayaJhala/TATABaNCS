@@ -121,7 +121,7 @@ async function accept(p, contract, date) {
   ok(p.url().endsWith(`/policy/${C}`) && await p.$('#endorse-modal') === null, 'Save closes the modal and returns to the policy screen');
   ok(await hdr(p) === 'OMS LISP Investment / DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started', `header after endorse: ${await hdr(p)}`);
   const pbar = await enabledBar(p);
-  ok(pbar.includes('btn-finalise-endorsement') && pbar.includes('btn-lock-ebq') && pbar.includes('btn-eac') && await p.$('#endorsement-action-bar button[disabled]') === null, `policy action bar: every button is clickable (${pbar.join(', ')})`);
+  ok(pbar.includes('btn-eac') && pbar.includes('btn-reject-endorsed-quote') && (await enabledSteps(p)).length === 0 && !!(await p.$('#btn-finalise-endorsement[disabled]')) && !!(await p.$('#btn-lock-ebq[disabled]')), `policy action bar: Finalise, Lock EBQ and End Sub are greyed until their turn; EAC and Reject stay clickable (${pbar.join(', ')})`);
   ok(await p.$('#nav-advisor-change') !== null, 'left nav includes Advisor Change');
   await shot(p, 'draft-action-bar');
 
@@ -138,18 +138,17 @@ async function accept(p, contract, date) {
   await accept(p, C, decl);
   ok((await text(p, '#acceptance-value-1')) === 'Yes' && (await text(p, '#acceptance-date-1')) === decl && await p.$('#acceptance-modal') === null, 'Save closes the modal; the list shows Yes with the declaration date');
 
-  // Endr Quote Summary (SOP 14-19): every button is clickable; a step out of order is refused with the next step named
+  // Endr Quote Summary (SOP 14-19): a step button is clickable only when the saved stage unlocks it; called directly, a step out of order is refused with the next step named
   await step(p, '#nav-endr-quote-summary');
-  await p.$eval('#btn-finalise-endorsement', e => e.scrollIntoView());
-  await step(p, '#btn-finalise-endorsement');
-  const early = await text(p, '#error-message') || '';
-  ok(early.startsWith('30405') && early.includes('The next step is Create or Refresh Layer') && (await hdr(p)).includes('DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started'), `Finalise clicked first is refused and the quote stays a draft: ${early}`);
+  ok(await p.$eval('#btn-finalise-endorsement', e => e.disabled), 'Finalise Endorsement is greyed on a new quote: only Create or Refresh Layer is unlocked (' + (await enabledSteps(p)).join(', ') + ')');
+  const early = (await fetch(`${DATA}/policies/${C}/endorsements/1/actions/finalise`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json())).error || {};
+  ok(early.code === 30405 && early.message.includes('The next step is Create or Refresh Layer') && (await hdr(p)).includes('DRAFT ENDORSEMENT QUOTE / Sub-Endorsement Started'), `Finalise called first is refused and the quote stays a draft: ${early.code}`);
   const vis = await p.$eval('#endorsement-action-bar', e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; });
   ok(vis, 'the action bar is pinned in view on load, without scrolling');
   const r = await fetch(`${DATA}/policies/${C}/endorsements/1/actions/lock-ebq`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'nzwane' }) }).then(x => x.json());
   ok(r.error && r.error.code === 30404, `server rejects Lock EBQ posted out of order: ${r.error && r.error.code}`);
   for (const btn of ['#btn-create-refresh-layer', '#btn-calculate-premium', '#btn-end-sub-endorsement', '#btn-lock-ebq', '#btn-finalise-endorsement']) {
-    ok(await p.$('#endorsement-action-bar button[disabled]') === null, `before ${btn}: every step button is clickable (${(await enabledSteps(p)).join(', ')})`);
+    ok((await enabledSteps(p)).filter(id => id !== 'btn-start-sub-endorsement').join(',') === btn.slice(1), `before ${btn}: it is the only step button unlocked (${(await enabledSteps(p)).join(', ')}; Start Sub Endorsement is not a step in this environment)`);
     await p.$eval(btn, e => e.scrollIntoView());
     const t0 = Date.now();
     await step(p, btn);
@@ -273,10 +272,9 @@ async function accept(p, contract, date) {
   await step(v2, '#btn-endorse-alter');
   ok((await text(v2, '#error-message') || '').startsWith('71037'), `Checker's Endorse/Alter is refused: ${await text(v2, '#error-message')}`);
   await step(v2, '#nav-endorsement-quotes'); await step(v2, '#endr-serial-1');
-  ok(await v2.$('#endorsement-action-bar button[disabled]') === null, 'on a draft, the Checker\'s summary bar is clickable as in the recording');
-  await v2.$eval('#btn-create-refresh-layer', e => e.scrollIntoView());
-  await step(v2, '#btn-create-refresh-layer');
-  ok((await text(v2, '#error-message') || '').startsWith('71037'), `the Checker's Create or Refresh Layer is refused: ${await text(v2, '#error-message')}`);
+  ok(await v2.$eval('#btn-create-refresh-layer', e => e.disabled) && (await enabledSteps(v2)).length === 0, 'on a draft, the Checker\'s step buttons are all greyed (Maker steps)');
+  const chkStep = (await fetch(`${DATA}/policies/${K}/endorsements/1/actions/create-layer`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ user: 'dvisser' }) }).then(x => x.json())).error || {};
+  ok(chkStep.code === 71037, `called directly, the Checker's Create or Refresh Layer is still refused: ${chkStep.code}`);
   await step(v2, '#nav-endr-quote-submission');
   const subBtns = await v2.$$eval('#bar-submission-actions button', bs => bs.map(b => b.id + (b.disabled ? ':off' : ':on')));
   ok(subBtns.join() === 'btn-save:on,btn-reject:on,btn-activate:on', `on a draft, the Checker's Endr Quote Submission shows Save, Reject, Activate clickable (${subBtns.join()})`);
