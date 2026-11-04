@@ -17,6 +17,7 @@
     "audit:blocks": "node scripts/audit-blocks.js",
     "calcsheet": "node scripts/build-calcsheet.js",
     "test:hang": "node scripts/checklist-hang.js",
+    "test:latency": "node scripts/checklist-latency.js",
     "test:sheet": "node scripts/verify-calcsheet.js",
     "transition": "node scripts/build-transition.js",
     "test:transition": "node scripts/checklist-transition.js"

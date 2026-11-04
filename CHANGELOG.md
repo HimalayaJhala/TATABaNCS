@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-04: test for save-after-wait and the step chain
+
+- **`npm run test:latency`** (new, API level, no browser). With short waits it walks Endorse/Alter Save, Basic Details Save, Acceptance, Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ and Finalise Endorsement, and checks for each timed step that the response takes the configured time and reports it in `X-Latency-Waited-Ms`, that the record is unchanged part-way through and changed after, and that the next step is refused at once while the current one runs (30402 to 30405) and is only unlocked by the save.
+- Also covered: a refused step answers at once and changes nothing, the Checker and a call with no user never wait, and profile Off means no wait.
+- Run it with the demo up. It resets the data and restores the latency table at the end.
+
 ## 2026-11-04: latency is served by the data API and saved after the wait
 
 - **The wait moved into `data-service`.** Search, Endorse/Alter, both Saves, the five quote-build steps (Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise Endorsement), Submit and Activate now hold their API response for the time set in the developer tools. The Checker, and any call that names no user, never waits.
