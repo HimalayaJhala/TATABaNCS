@@ -138,6 +138,13 @@ function searchPolicies(req) {
     const mode = { 'Exact match': 'exact', 'Starts with': 'starts', 'Contains': 'contains' }[q.parameter] || dflt;
     return mode === 'exact' ? v === c : mode === 'starts' ? v.startsWith(c) : v.includes(c);
   };
+  // An open-book contract number is 12 digits. A whole number searched as an exact match that is shorter or longer
+  // is refused before the search runs; Starts with, Contains, a % wildcard and closed-book numbers are not checked.
+  const cn = String(q.contractNo || '').trim();
+  const exact = !q.parameter || q.parameter === 'Exact match';
+  if (book !== 'closed' && exact && /^\d+$/.test(cn) && cn.length !== 12) {
+    throw new rules.BancsError(21002, `Contract No. ${cn} is not valid: a contract number has 12 digits, ${cn.length} entered.`, 400);
+  }
   // Only one person is modelled per policy, so owner, payer and life assured are the same party.
   const stakeOk = !has(q.partyStake) || ['Contract Owner', 'Contribution Payer', 'Life Assured'].includes(q.partyStake);
   return db().policies.filter(p =>

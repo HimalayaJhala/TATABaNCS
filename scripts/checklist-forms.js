@@ -29,9 +29,28 @@ async function search(p, fields) {
   await p.goto(B + '/login'); await p.select('#login-user', 'nzwane'); await step(p, '#btn-login');
 
   // ---- Search dropdowns ----
-  let r = await search(p, { '#contract-no': '1144932' });
-  ok(r.length === 0, 'Contract No. "1144932" alone matches nothing (default is an exact match)');
-  r = await search(p, { '#contract-no': '1199000', '#parameter': 'Starts with' });
+  // A contract number that is not 12 digits (dummy sheet row 4: 11316223100) is refused by the page and by the API.
+  await p.goto(B + '/policy-servicing/search');
+  await p.type('#contract-no', '11316223100');
+  await p.click('#btn-search');
+  await p.waitForSelector('#error-message', { timeout: 5000 }).catch(() => null);
+  ok(p.url().endsWith('/policy-servicing/search') && ((await text(p, '#error-message')) || '').startsWith('21002*****: Contract No. 11316223100 is not valid') &&
+    !(await p.$('#search-results')) && !(await p.$eval('body', b => b.classList.contains('is-loading'))) &&
+    (await p.$eval('#contract-no', e => e.getAttribute('aria-invalid'))) === 'true',
+  `the page refuses an 11-digit contract number before sending it: ${await text(p, '#error-message')}`);
+  await Promise.all([p.waitForNavigation({ timeout: 30000 }), p.$eval('#form-search', f => HTMLFormElement.prototype.submit.call(f))]);
+  ok(((await text(p, '#error-message')) || '').startsWith('21002*****') && !(await p.$('#search-results')),
+    'sent anyway (no page check), the server refuses it with 21002 and shows no result grid');
+  const short = await fetch(DATA + '/policies?contractNo=1144932');
+  ok(short.status === 400 && (await short.json()).error.code === 21002, 'the API refuses a 7-digit contract number (21002)');
+  let r = await search(p, { '#contract-no': '1144932', '#parameter': 'Contains' });
+  ok(r.length === 0, 'a part number with Parameter "Contains" is a valid search and matches nothing');
+  // Dummy sheet row 3: the sheet's ID with the contract finds nothing; the contract alone shows BaNCS's other ID.
+  r = await search(p, { '#contract-no': '110671307001', '#id-no': '7903149806083' });
+  ok(r.length === 0 && (await text(p, '#no-results')) === 'No records found.', 'contract 110671307001 with the sheet\'s ID 7903149806083 finds no records (ID mismatch)');
+  r = await search(p, { '#contract-no': '110671307001' });
+  ok(r.join() === '110671307001' && (await text(p, '#result-id-110671307001')) === '7903149815084', 'the contract alone shows ID 7903149815084, not the sheet\'s');
+  r = await search(p,{ '#contract-no': '1199000', '#parameter': 'Starts with' });
   ok(r.join() === '119900001001', 'Parameter "Starts with" finds 119900001001 from the first digits');
   r = await search(p, { '#contract-no': '900001', '#parameter': 'Contains' });
   ok(r.join() === '119900001001', 'Parameter "Contains" finds it from the middle digits');

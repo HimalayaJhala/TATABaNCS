@@ -1,5 +1,6 @@
 // The minimum JavaScript BaNCS needs: the dual list box in the
-// Endorsement Initiation modal, the loading state and browser hang on slow steps, and the demo reset shortcut. No business rules live here.
+// Endorsement Initiation modal, the loading state and browser hang on slow steps, and the demo reset shortcut. No business rules live here,
+// except the search page's contract-number check, which repeats the data service's (21002) so a bad number is refused at once.
 (function () {
   // Dual list box on the Endorsement Initiation Screen.
   function move(from, to) {
@@ -19,6 +20,33 @@
     var sel = document.getElementById('endorsement-types-selected');
     Array.prototype.forEach.call(sel.options, function (o) { o.selected = true; });
   });
+
+  // Quote/Contract Search: a whole contract number searched as an exact match must be 12 digits (the server checks
+  // the same and answers 21002). The error shows in the usual band and the search is not sent. Runs on the form,
+  // so it comes before the document-level loading handler below and no loader appears.
+  var sf = document.getElementById('form-search'), cno = document.getElementById('contract-no');
+  if (sf && cno && sf.hasAttribute('data-contract-digits')) {   // open book only; closed-book numbers look like 13394001/LSD/1
+    sf.addEventListener('submit', function (ev) {
+      var v = cno.value.trim(), param = (document.getElementById('parameter') || {}).value || '';
+      var bad = /^\d+$/.test(v) && v.length !== 12 && (!param || param === 'Exact match');
+      cno.setAttribute('aria-invalid', bad ? 'true' : 'false');
+      if (!bad) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var box = document.getElementById('block-messages');
+      if (box) {
+        box.innerHTML = '<div class="msg msg-error" id="error-band" role="alert"><span class="msg-icon">&#10006;</span>' +
+          '<div class="msg-body"><span id="error-message"></span></div></div>';
+        document.getElementById('error-message').textContent =
+          '21002*****: Contract No. ' + v + ' is not valid: a contract number has 12 digits, ' + v.length + ' entered.';
+      }
+      var grid = document.getElementById('grid-search-results'), head = document.getElementById('result-head');
+      if (grid) grid.remove();
+      if (head) head.remove();
+      cno.focus();
+    });
+    cno.addEventListener('input', function () { cno.removeAttribute('aria-invalid'); });
+  }
 
   // Loading. The wait itself happens on the server (data-service); this only shows the loading state, which is
   // the recording's: the sections drop away and a dotted ring spins under the header (see body.is-loading in

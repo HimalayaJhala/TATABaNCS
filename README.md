@@ -290,6 +290,7 @@ Run `npm run seed` then `npm run worklist` to regenerate; `npm run reset` restor
 
 | Rule | Error |
 | --- | --- |
+| Search on a whole contract number (exact match) that is not 12 digits, open book | `21002` |
 | Endorse/Alter while an endorsement is open, submitted-but-not-activated, or finalised with a future effective date | `56000` |
 | Endr Quote Summary step out of order | `30401`–`30405` |
 | Finalise before contracting-party acceptance is captured | `30407` |
@@ -394,7 +395,17 @@ These follow the SOP screenshots and the recording, because Seek ultimately has 
 
 ## Developer tools: dummy data
 
-**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1 and 4 (119900001001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Row 3 (110671307001) fails the identity check: the sheet gives ID 7903149806083 but BaNCS shows 7903149815084, so the case stops before Endorse/Alter and nothing is changed. Row 4 opens Endr Quote Submission with Legal Verification blank, for the SOP's "if not pre-populated then select the Approved option". Status and Summary are blank for the run to fill in.
+**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with nine contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. `npm run dummy` rebuilds both from the seed and checks that each row is still the case it stands for. Status and Summary are blank for the run to fill in.
+
+| Row | Contract | Case | Expected outcome |
+| --- | --- | --- | --- |
+| 1 | 119900001001 | Happy path | Fee switched off to 0, Submit, Checker Activates |
+| 2 | 102790002001 | Lapsed policy | Endorse/Alter gives `56020`; nothing is changed |
+| 3 | 110671307001 | ID mismatch | The sheet gives ID 7903149806083, BaNCS shows 7903149815084. Searching the contract with the sheet's ID finds **No records found.**; searching the contract alone shows the other ID. Stop before Endorse/Alter; nothing is changed |
+| 4 | 11316223100 | Contract number with 11 digits | Search refuses it with `21002` (see below); nothing is changed |
+| 5 to 9 | 112953094001, 113165622001, 113402518001, 112045877001, 112718459001 | Happy path | As row 1 |
+
+**Contract number check (`21002`).** An open-book contract number is 12 digits. A whole number searched as an exact match (Parameter blank or Exact match) that is shorter or longer is refused with `21002*****: Contract No. 11316223100 is not valid: a contract number has 12 digits, 11 entered.` The page checks it before sending the search (the error shows in the usual band, the field is marked and no loader appears), and the data service checks it again, so a search sent another way gets the same error and no result grid. Starts with, Contains, a `%` wildcard and closed-book numbers are not checked.
 
 ## Loading state
 

@@ -12,6 +12,7 @@
     "reset": "curl -s -X POST http://localhost:4000/admin/reset && echo && node scripts/build-worklist.js && node scripts/build-calcsheet.js",
     "test": "node scripts/checklist.js",
     "worklist": "node scripts/build-worklist.js",
+    "dummy": "node scripts/build-dummy.js",
     "test:split": "node scripts/checklist-split.js",
     "test:forms": "node scripts/checklist-forms.js",
     "audit:blocks": "node scripts/audit-blocks.js",

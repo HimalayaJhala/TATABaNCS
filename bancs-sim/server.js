@@ -374,7 +374,8 @@ async function doSearch(req, res, src) {
     partyStake: criteria.partyStakeName, parameter: criteria.parameter, branch: criteria.branchCode, book: BOOK
   });
   const r = await api('GET', `/policies?${qs}&user=${encodeURIComponent(req.session.user.id)}`);
-  render(req, res, 'search', { criteria, results: r.data || [], error: r.error ? fmtError(r.error) : null });
+  // A refused search (a contract number that is not 12 digits) shows the error and no result grid.
+  render(req, res, 'search', { criteria, results: r.error ? null : r.data || [], error: r.error ? fmtError(r.error) : null });
 }
 
 app.post('/policy-servicing/results', requireLogin, (req, res) => doSearch(req, res, req.body));

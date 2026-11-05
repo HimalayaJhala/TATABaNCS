@@ -1,6 +1,6 @@
 <%- include('partials/top') %>
 <div class="title-center" id="search-title"><%= book === 'closed' ? 'Quote/Contract/Voucher Search' : 'Quote/Contract Search' %></div>
-<form method="post" action="/policy-servicing/results" id="form-search" data-busy<%- hangMs.search ? ' data-hang-ms="' + hangMs.search + '"' : '' %>>
+<form method="post" action="/policy-servicing/results" id="form-search" data-busy<%- book === 'closed' ? '' : ' data-contract-digits="12"' %><%-hangMs.search ? ' data-hang-ms="' + hangMs.search + '"' : '' %>>
 <% var c = criteria;
    var statuses = [['', '--Select--'], 'ACTIVE POLICY', 'DRAFT ENDORSEMENT QUOTE', 'FINAL ENDORSEMENT QUOTE', 'REJECTED ENDORSEMENT QUOTE', 'LAPSED']; %>
 <div class="search-box" id="block-search-criteria" data-block="form-frame">

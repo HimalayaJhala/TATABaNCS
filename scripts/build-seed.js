@@ -205,8 +205,8 @@ ROWS.forEach((r, i) => {
       primaryUpfront: '0.00', secondaryUpfront: '0.00', eachPremium: '0.00', immediately: '0.00',
       scalingPct: '100.00', distributionFeeScalingPct: '0.00'
     },
-    // The SOP: "Legal Verification, if not pre-populated then select the Approved option". 112333103001 is the dummy
-    // work list row that opens with it blank, so a run meets that branch.
+    // The SOP: "Legal Verification, if not pre-populated then select the Approved option". 112333103001 opens with it
+    // blank as well as the two legal-blank policies, so a run of the full work list meets that branch.
     submissionDefaults: { legalVerification: scenario === 'legal-blank' || contractNo === '112333103001' ? '' : 'Approved' }
   });
 
@@ -238,8 +238,8 @@ ROWS.forEach((r, i) => {
   }
 });
 
-// The contracts on the dummy work list (119900001001, 102790002001, 110671307001, 112333103001) start with no
-// endorsement quotes, so Endorsement Quotes only ever shows what a run created.
+// The contracts on the dummy work list (scripts/build-dummy.js) start with no endorsement quotes, so Endorsement
+// Quotes only ever shows what a run created. build-dummy.js checks this for its happy-path rows.
 endorsements.push(
   // 56000 scenarios: a finalised endorsement effective 01/11/2026, and an open draft
   historic('113901377001', 1, 'Change Premium Collection Day', '01/11/2026'),

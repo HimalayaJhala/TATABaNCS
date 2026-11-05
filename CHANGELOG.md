@@ -3,6 +3,14 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-05: nine-row dummy sheet and the contract number check
+
+- **The dummy sheet** (`Split Fee Cases and Annuities Aug 2026-synthetic`, Excel and PDF) now has nine rows: 1 happy path (119900001001), 2 lapsed (102790002001, `56020`), 3 ID mismatch (110671307001), 4 a contract number with 11 digits (11316223100), 5 to 9 happy path (112953094001, 113165622001, 113402518001, 112045877001, 112718459001). 112333103001 (Legal Verification blank) is no longer on it; it stays on the full work list.
+- **New `npm run dummy`** (`scripts/build-dummy.js`) writes both files from the seed and stops if a row no longer stands for its case (row 2 not lapsed, row 3 IDs equal, row 4 found, a happy row with an endorsement or a zero fee).
+- **Contract number check, `21002`:** a whole contract number searched as an exact match in the open book must be 12 digits. The data service refuses it (`GET /policies`), the search page shows the error with no result grid, and the page itself checks before sending, marking the field and showing no loader. Starts with, Contains, `%` and the closed book are unchanged.
+- **ID mismatch on search** needs no new rule: the contract with the sheet's ID gives "No records found.", and the contract alone shows BaNCS's other ID. Now covered by tests.
+- **Tests:** `npm run test:forms` checks the page and server refusals, the API's `21002`, and both ID-mismatch searches; its old check that "1144932" alone matches nothing is now a `Contains` search.
+
 ## 2026-11-05: dummy sheet row 3 is the ID-mismatch case
 
 - **The dummy sheet is unchanged** (`Split Fee Cases and Annuities Aug 2026-synthetic`): its four rows are now happy path, lapsed, ID mismatch, happy path with Legal Verification blank.
