@@ -55,7 +55,8 @@ const ADVISERS = {
 const ROWS = [
   // ---- single adviser, non-zero fee: the happy path --------------------------------------------
   ['119900001001', 'LISP', 'NOKUTHULA', 'JANE', 'MAHLOBO', 'F', '14/09/1986', 0.50, 'happy', [['699001', 100]], 600, 240, 12.48, '30/01/2026', false],
-  ['110671307001', 'TFI', 'SIPHO', 'ANDILE', 'KHUMALO', 'M', '14/03/1979', 1.00, 'happy', [['694653', 100]], 2500, 240, 100.69, '12/02/2024', false],
+  // Row 3 of the dummy sheet: the sheet keeps 7903149806083, BaNCS carries a different ID (identity check fails).
+  ['110671307001', 'TFI', 'SIPHO', 'ANDILE', 'KHUMALO', 'M', '14/03/1979', 1.00, 'bancs-id-mismatch', [['694653', 100]], 2500, 240, 100.69, '12/02/2024', false],
   ['112333103001', 'LISP', 'THANDEKA', 'GRACE', 'ZULU', 'F', '22/11/1990', 0.75, 'happy', [['657110', 100]], 1200, 180, 41.07, '03/05/2024', false],
   ['112953094001', 'TFI', 'RIAAN', 'PIETER', 'STEYN', 'M', '02/07/1972', 0.50, 'happy', [['631710', 100]], 3000, 240, 0.19, '18/09/2024', false],
   ['113162231001', 'LISP', 'AYESHA', 'FATIMA', 'PATEL', 'F', '19/09/1988', 1.25, 'happy', [['631631', 100]], 4500, 300, 7.62, '07/01/2025', true],
@@ -130,6 +131,8 @@ ROWS.forEach((r, i) => {
   const p = PRODUCTS[prod];
   const isA = contractNo === '119900001001';
   const idNumber = saId(dob, gender, 4417 + i * 389);
+  // bancs-id-mismatch: the policy in BaNCS carries a different, still valid, ID; the work list keeps idNumber.
+  const bancsId = scenario === 'bancs-id-mismatch' ? saId(dob, gender, 4417 + i * 389 + 9) : idNumber;
   let partyCode = 'BNCSGC-';
   for (let k = 0; k < 13; k++) partyCode += partyChars[(i * 31 + k * 17 + k * k) % partyChars.length];
   if (isA) partyCode = 'BNCSGC-SYNTH00000001';
@@ -154,7 +157,7 @@ ROWS.forEach((r, i) => {
     scenario,
     owner: {
       partyCode, title: gender === 'F' ? 'MS' : 'MR', firstName: first, middleName: middle, lastName: last,
-      initials: first[0] + middle[0], dob, idNumber, gender, nature: 'Individual', identityType: 'RSA ID'
+      initials: first[0] + middle[0], dob, idNumber: bancsId, gender, nature: 'Individual', identityType: 'RSA ID'
     },
     basic: {
       quoteInstanceNumber: contractNo.slice(0, 9),

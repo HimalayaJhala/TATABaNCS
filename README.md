@@ -90,7 +90,7 @@ Blue figures are inputs, yellow cells can be changed, black figures are formulas
 
 **One assumption to confirm with Old Mutual:** the rand columns treat the asset advice fee as a percentage *a year* of the market value. If it is charged differently, only the rand columns change; the percentages and the process decisions do not.
 
-It is checked two ways. `npm run test:sheet` runs against the live app: every fee, every expected outcome (56000, ID mismatch, skip), the "after" figures for each of the 20 policies the process changes, and each Split Fee row saved through the app's own split rules (621 checks), including Calculate Premium in the app against the Quote Summary and EAC sheets for every policy that can be endorsed. Separately, all 4,054 formula cells were recalculated with an independent spreadsheet engine and agree with the stored results. Regenerate it with `npm run calcsheet` (`npm run reset` does this too); close it in Excel first.
+It is checked two ways. `npm run test:sheet` runs against the live app: every fee, every expected outcome (56000, ID mismatch, skip), the "after" figures for each of the 19 policies the process changes, and each Split Fee row saved through the app's own split rules (616 checks), including Calculate Premium in the app against the Quote Summary and EAC sheets for every policy that can be endorsed. Separately, all 4,054 formula cells were recalculated with an independent spreadsheet engine and agree with the stored results. Regenerate it with `npm run calcsheet` (`npm run reset` does this too); close it in Excel first.
 
 ## Demo controls
 
@@ -274,7 +274,7 @@ Run `npm run seed` then `npm run worklist` to regenerate; `npm run reset` restor
 | --- | --- |
 | 113901377001 | Finalised endorsement effective 01/11/2026, so Endorse/Alter returns **56000** |
 | 114020658001 | Open draft endorsement, so Endorse/Alter returns **56000** |
-| 114137290001 | The ID number in the work list differs from BaNCS (the identity check should fail) |
+| 114137290001, 110671307001 | The ID number in the work list differs from BaNCS (the identity check should fail). For 110671307001 the sheet's ID stays as is and BaNCS carries the other one |
 | 114250817001, 114318964001 | Legal Verification defaults blank, so Approved has to be chosen before Submit |
 
 ### Split commission, two or three advisers (4)
@@ -394,7 +394,7 @@ These follow the SOP screenshots and the recording, because Seek ultimately has 
 
 ## Developer tools: dummy data
 
-**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1, 3 and 4 (119900001001, 110671307001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Row 4 opens Endr Quote Submission with Legal Verification blank, for the SOP's "if not pre-populated then select the Approved option". Status and Summary are blank for the run to fill in.
+**Dummy data** downloads `worklist/Split Fee Cases and Annuities Aug 2026-synthetic.xlsx` (Download Excel) or the same as a PDF (Download PDF). It is the S&I tab only, with four contracts, and it is synthetic: no real client names, ID numbers, contracts or adviser codes. Rows 1 and 4 (119900001001, 112333103001) are the normal flow: the fee is switched off to 0, then Submit and Checker Activate. Row 2 (102790002001) is lapsed: Endorse/Alter gives 56020 and nothing is changed. Row 3 (110671307001) fails the identity check: the sheet gives ID 7903149806083 but BaNCS shows 7903149815084, so the case stops before Endorse/Alter and nothing is changed. Row 4 opens Endr Quote Submission with Legal Verification blank, for the SOP's "if not pre-populated then select the Approved option". Status and Summary are blank for the run to fill in.
 
 ## Loading state
 

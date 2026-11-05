@@ -139,7 +139,7 @@
       "currency": "South African Rand",
       "branch": "HO",
       "coverAmount": "30000.00",
-      "scenario": "happy",
+      "scenario": "bancs-id-mismatch",
       "owner": {
         "partyCode": "BNCSGC-7RBZPF953359F",
         "title": "MR",
@@ -148,7 +148,7 @@
         "lastName": "KHUMALO",
         "initials": "SA",
         "dob": "14/03/1979",
-        "idNumber": "7903149806083",
+        "idNumber": "7903149815084",
         "gender": "M",
         "nature": "Individual",
         "identityType": "RSA ID"

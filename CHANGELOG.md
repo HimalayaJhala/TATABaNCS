@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-05: dummy sheet row 3 is the ID-mismatch case
+
+- **The dummy sheet is unchanged** (`Split Fee Cases and Annuities Aug 2026-synthetic`): its four rows are now happy path, lapsed, ID mismatch, happy path with Legal Verification blank.
+- **110671307001 in BaNCS** now carries ID 7903149815084, a different valid ID with the same date of birth and gender. The sheet, and the team's full work list, keep 7903149806083, so the SOP's identity check fails and the case stops before Endorse/Alter. New seed scenario `bancs-id-mismatch`: the policy's ID changes, the list's does not (the opposite of `id-mismatch`).
+- The calculation workbook now has 19 PROCEED, 3 SKIP and 4 STOP rows (`npm run calcsheet`).
+- **Tests:** all suites pass; `npm run test:sheet` now runs 616 checks. `npm run test:forms` failed one check on its first run and passed on the next two; the failing check was not captured.
+
 ## 2026-11-04: the page updates the moment the response arrives
 
 - The 0.5 s hold before showing a result is gone. The loader runs until the API response arrives (after the step's configured wait, with the data already saved) and the screen then updates at once, with the next step's button unlocked.
