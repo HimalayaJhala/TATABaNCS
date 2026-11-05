@@ -299,6 +299,16 @@ async function search(p, fields) {
   ok(queued.length === 4 && queued.every(e => e.stage === 'submitted' && e.subStatus === 'Endorsement Submitted' && e.capturedBy === 'nzwane' && e.submittedBy === 'nzwane'), 'Submit 4 for the Checker: four contracts at Endorsement Submitted, captured and submitted by the Maker');
   const inbox = await (await fetch(DATA + '/mail?to=dvisser')).json();
   ok(inbox.filter(m => m.kind === 'verify').length === 4, 'the Checker has a "Please verify" email for each');
+  // A Checker with no quote open (fresh login, or after Reset data) who lands on Endr Quote Submission gets the one submitted quote, not 56005; a Maker still gets 56005.
+  const direct = async user => {
+    const pg = await (await browser.createBrowserContext()).newPage();
+    await pg.goto(B + '/login'); await pg.select('#login-user', user); await Promise.all([pg.waitForNavigation(), pg.click('#btn-login')]);
+    await pg.goto(`${B}/policy/${queue[0]}/quote-submission`);
+    return { err: await text(pg, '#error-message'), sub: await text(pg, '#hdr-sub-status') };
+  };
+  const cd = await direct('dvisser'), md = await direct('nzwane');
+  ok(cd.err === null && cd.sub === 'Endorsement Submitted', `the Checker's link to Endr Quote Submission opens the one submitted quote (${cd.err || cd.sub})`);
+  ok(md.err && md.err.startsWith('56005'), 'the Maker with no quote open still gets 56005');
   await fetch(DATA + '/admin/reset', { method: 'POST' });
   await p.goto(B + '/login');
   await p.select('#login-user', 'nzwane'); await Promise.all([p.waitForNavigation(), p.click('#btn-login')]);

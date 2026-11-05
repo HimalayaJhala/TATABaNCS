@@ -3,6 +3,12 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-05: the Checker no longer gets 56005 on a submitted quote
+
+- **Cause:** the session remembers which quote is open per contract, and Reset data (and a fresh login) clears it. After Submit 4 for the Checker, a Checker page still open from before, or a link straight to Endr Quote Submission, had no quote in context and answered `56005`.
+- **Fix:** when the Checker has no quote open on a policy and exactly one quote is waiting for activation, Endr Quote Summary and Endr Quote Submission (the page and its Save, Reject and Activate posts) open that quote. With none, or more than one, `56005` stays and the Checker picks the serial from Endorsement Quotes, as the SOP says. The Maker is unchanged.
+- **Tests:** `test:forms` covers the Checker's direct link and that the Maker still gets `56005`.
+
 ## 2026-11-05: developer tools button that queues four contracts for the Checker
 
 - **New "Checker test" section in the developer tools, button "Submit 4 for the Checker".** It takes 119900001001, 112953094001, 113165622001 and 113402518001 to Endorsement Submitted with the fee at 0, ready for the Checker to find and activate. Each goes through the Maker's own steps (Endorse/Alter, fee, Acceptance, Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise, Submit) by calling the same rules, as `nzwane`, with no latency. So the quote, its log, the "Please verify" email to the Checker and the switch-off count are the same as a manual run. A contract that already has a quote is skipped with its error code and named in the panel.

@@ -230,6 +230,17 @@ function actionBar(e, onSummary, checker) {
   return [...shown, ...ALWAYS_ON, 'endorsement-detail'].map(button);
 }
 
+// The Checker only ever works on a quote the Maker has submitted. If no quote is open in this session (after Reset data,
+// a fresh login, or a link straight to Endr Quote Submission) and the policy has exactly one quote waiting for
+// activation, that quote is opened, so the Checker is not sent back with 56005. With none, or more than one, it stays
+// an error and the Checker picks the serial from Endorsement Quotes, as the SOP says.
+async function adoptSubmitted(req, contractNo) {
+  if (!isChecker(req) || req.session.ctx[contractNo]) return;
+  const list = (await api('GET', `/policies/${contractNo}/endorsements`)).data || [];
+  const waiting = list.filter(e => e.stage === 'submitted');
+  if (waiting.length === 1) req.session.ctx[contractNo] = waiting[0].serial;
+}
+
 function needEndorsement(req, res, ctx) {
   if (ctx.endorsement) return true;
   flash(req, 'error', fmtError({ code: 56005, message: 'No endorsement quote is open for this policy. Use Endorse/Alter or select a quote from Endorsement Quotes.' }));
@@ -695,6 +706,7 @@ app.post('/policy/:id/sharing/:type', requireLogin, async (req, res) => {
 
 // ---- Endr Quote Summary (screen 10) --------------------------------------------------------
 app.get('/policy/:id/quote-summary', requireLogin, async (req, res) => {
+  await adoptSubmitted(req, req.params.id);
   const ctx = await loadCtx(req, req.params.id, 'endr-quote-summary');
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   if (!needEndorsement(req, res, ctx)) return;
@@ -707,6 +719,7 @@ const STEP_ACTIONS = ['create-layer', 'calculate-premium', 'end-sub-endorsement'
 
 app.post('/policy/:id/quote-summary/:action', requireLogin, async (req, res) => {
   const id = req.params.id;
+  await adoptSubmitted(req, id);
   const serial = req.session.ctx[id];
   const back = `/policy/${id}/quote-summary`;
   if (!serial) {
@@ -729,6 +742,7 @@ app.post('/policy/:id/quote-summary/:action', requireLogin, async (req, res) => 
 
 // ---- Endr Quote Submission (screen 11) -----------------------------------------------------
 app.get('/policy/:id/quote-submission', requireLogin, async (req, res) => {
+  await adoptSubmitted(req, req.params.id);
   const ctx = await loadCtx(req, req.params.id, 'endr-quote-submission');
   if (ctx.error) { flash(req, 'error', fmtError(ctx.error)); return res.redirect('/policy-servicing/search'); }
   if (!needEndorsement(req, res, ctx)) return;
@@ -744,6 +758,7 @@ const SUBMISSION_FIELDS = ['reinsuranceVerified', 'sarInProgress', 'uwRequiremen
 
 app.post('/policy/:id/quote-submission', requireLogin, async (req, res) => {
   const id = req.params.id;
+  await adoptSubmitted(req, id);
   const serial = req.session.ctx[id];
   const here = `/policy/${id}/quote-submission`;
   if (!serial) {
