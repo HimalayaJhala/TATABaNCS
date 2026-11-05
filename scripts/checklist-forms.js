@@ -287,6 +287,19 @@ async function search(p, fields) {
   ok(new URL(p.url()).pathname === '/checker/home' && (await text(p, '#user-role')) === 'PREM-ADM' && (await text(p, '#welcome-user')).includes('Daniel Visser'), `the Checker logs in as Daniel Visser, PREM-ADM, and lands on /checker/home (${new URL(p.url()).pathname})`);
   await p.goto(B + '/home');
   ok(new URL(p.url()).pathname === '/checker/home', 'Home takes the Checker to /checker/home');
+  // Developer tools, Checker test: the button leaves four clean contracts at Endorsement Submitted, as the Maker would, and the Checker finds them.
+  await fetch(DATA + '/admin/reset', { method: 'POST' });
+  const queue = ['119900001001', '112953094001', '113165622001', '113402518001'];
+  const dev = await (await browser.createBrowserContext()).newPage();
+  await dev.goto(B + '/login'); await dev.click('#btn-dev-menu'); await dev.waitForSelector('#btn-submit-for-checker', { visible: true });
+  ok(await dev.$eval('#btn-fee-zero-stop', b => getComputedStyle(b).display) === 'none', 'the idle fee-switch-off panel hides Stop live tracking');
+  await dev.click('#btn-submit-for-checker');
+  await dev.waitForFunction(() => /Endorsement Submitted:/.test(document.getElementById('checker-queue-note').textContent), { timeout: 15000 });
+  const queued = (await Promise.all(queue.map(async c => (await (await fetch(`${DATA}/policies/${c}/endorsements`)).json())[0]))).filter(Boolean);
+  ok(queued.length === 4 && queued.every(e => e.stage === 'submitted' && e.subStatus === 'Endorsement Submitted' && e.capturedBy === 'nzwane' && e.submittedBy === 'nzwane'), 'Submit 4 for the Checker: four contracts at Endorsement Submitted, captured and submitted by the Maker');
+  const inbox = await (await fetch(DATA + '/mail?to=dvisser')).json();
+  ok(inbox.filter(m => m.kind === 'verify').length === 4, 'the Checker has a "Please verify" email for each');
+  await fetch(DATA + '/admin/reset', { method: 'POST' });
   await p.goto(B + '/login');
   await p.select('#login-user', 'nzwane'); await Promise.all([p.waitForNavigation(), p.click('#btn-login')]);
   ok(new URL(p.url()).pathname === '/home' && (await text(p, '#user-role')) === 'SYS-ADMIN' && (await text(p, '#welcome-user')).includes('Nandi Zwane'), 'the Maker logs in as Nandi Zwane, SYS-ADMIN, and lands on /home');

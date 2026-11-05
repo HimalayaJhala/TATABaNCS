@@ -310,7 +310,7 @@ input.date { cursor: pointer; }
 .fields { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
 .fields.one { grid-template-columns: 1fr; }
 .field { display: grid; grid-template-columns: 30% 2% 68%; align-items: center; min-height: 28px; padding: 3px 4px; font-size: 12px; background: linear-gradient(#f9f9f9, #efefef); border-top: 2px solid #fff; }
-.field[hidden] { display: none; }
+.field[hidden], .btn[hidden] { display: none; }
 .field-label { color: var(--label); }
 .field-mark { color: var(--red); font-weight: bold; text-align: center; font-size: 13px; }
 .field-control { min-width: 0; }

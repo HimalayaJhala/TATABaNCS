@@ -120,6 +120,33 @@ app.post('/admin/clear-endorsements', wrap(req => {
   return { ok: true, cleared: gone.length, contracts: [...touched] };
 }));
 
+// Developer tools: puts clean contracts at Endorsement Submitted, waiting for the Checker. Each one is taken through the
+// Maker's own steps (Endorse/Alter, fee to 0, Acceptance, the five quote-build steps, Submit) by calling the same rules the
+// screens call, with no latency, so the quote, its log, the "Please verify" email and the switch-off count are exactly what
+// a person clicking through as the Maker would leave. A contract that already has a quote in progress is skipped and named.
+const CHECKER_QUEUE = ['119900001001', '112953094001', '113165622001', '113402518001'];   // the dummy sheet's clean rows 1, 5, 6, 7
+app.post('/admin/submit-for-checker', wrap(async () => {
+  const maker = db().users.find(u => u.kind === 'capturer');
+  const done = [], skipped = [];
+  for (const contractNo of CHECKER_QUEUE) {
+    try {
+      const e = await rules.createEndorsement(contractNo, { user: maker.id, types: ['Change Asset Advice Fee'] });
+      await rules.updateFee(contractNo, e.serial, { user: maker.id, vatInclusive: '0' });
+      rules.saveAcceptance(contractNo, e.serial, { user: maker.id, accepted: 'Yes', date: db().config.systemDate });
+      for (const action of ['create-layer', 'calculate-premium', 'end-sub-endorsement', 'lock-ebq', 'finalise']) {
+        await rules.runAction(contractNo, e.serial, action, { user: maker.id });
+      }
+      const sub = await rules.submit(contractNo, e.serial, { user: maker.id, reinsuranceVerified: 'Yes', allAdminRequirementsReceived: 'Accepted', legalVerification: 'Approved' });
+      done.push({ contractNo, serial: sub.serial, quotationNumber: sub.quotationNumber, subStatus: sub.subStatus });
+    } catch (err) {
+      if (!(err instanceof rules.BancsError)) throw err;
+      skipped.push({ contractNo, code: err.code, reason: err.message });
+    }
+  }
+  console.log(`[data-service] ${done.length} contract(s) submitted for the Checker, ${skipped.length} skipped`);
+  return { submitted: done, skipped };
+}));
+
 // Quote/Contract search. All supplied criteria must match; blank criteria are ignored.
 // Quote/Contract search. Every criterion that is filled in must match.
 //  - Parameter chooses how the text criteria are matched: Exact match, Starts with, Contains.

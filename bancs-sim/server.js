@@ -285,6 +285,12 @@ app.post('/dev/fee-zero/start', async (req, res) => {
   res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);
 });
 
+// Developer menu: puts four clean contracts at Endorsement Submitted, as the Maker would leave them, for the Checker to find.
+app.post('/dev/submit-for-checker', async (req, res) => {
+  const r = await api('POST', '/admin/submit-for-checker');
+  res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);
+});
+
 // The first tab of a work list as CSV, for the developer tools' Google Sheets option (IMPORTDATA reads it).
 const DUMMY_CSV = { csv: DUMMY_DATA.xlsx, 'transition-csv': DUMMY_DATA['transition-xlsx'] };
 app.get('/login/dummy-data/:kind(csv|transition-csv)', async (req, res) => {

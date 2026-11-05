@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-05: developer tools button that queues four contracts for the Checker
+
+- **New "Checker test" section in the developer tools, button "Submit 4 for the Checker".** It takes 119900001001, 112953094001, 113165622001 and 113402518001 to Endorsement Submitted with the fee at 0, ready for the Checker to find and activate. Each goes through the Maker's own steps (Endorse/Alter, fee, Acceptance, Create or Refresh Layer, Calculate Premium, End Sub Endorsement, Lock EBQ, Finalise, Submit) by calling the same rules, as `nzwane`, with no latency. So the quote, its log, the "Please verify" email to the Checker and the switch-off count are the same as a manual run. A contract that already has a quote is skipped with its error code and named in the panel.
+- New `POST /admin/submit-for-checker` in `data-service`, a proxy `POST /dev/submit-for-checker` in `bancs-sim`.
+- **Fix:** the idle fee switch-off panel showed Stop live tracking next to Start. `.btn` set its own display, which overrode the `hidden` attribute; `.btn[hidden]` now hides.
+- **Tests:** `test:forms` presses the button, checks four quotes at Endorsement Submitted, captured and submitted by the Maker, with four "Please verify" emails, and that Stop is hidden when idle. All suites pass.
+
 ## 2026-11-05: the Checker's screens match the Maker's
 
 - **Same chrome for both personas.** The Checker's home now shows the Maker's three tiles (Accounting, Business Operation, Re-insurance) and the top bar shows the same seven tabs (Work Items, Business Partners, Maintain Intermediary, New Business, Policy Servicing, Claims, Document & Fax). Before, the Checker had two tiles and one tab, from the recording's verifier profile. The Maker's other tabs and tiles open the same placeholder pages for both.

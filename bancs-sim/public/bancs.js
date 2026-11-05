@@ -235,6 +235,21 @@
     read();
   })();
 
+  // Developer tools, Checker test: submits four clean contracts as the Maker would, so the Checker finds them waiting.
+  (function () {
+    var go = document.getElementById('btn-submit-for-checker'), note = document.getElementById('checker-queue-note');
+    if (!go || !note) return;
+    go.addEventListener('click', function () {
+      go.disabled = true; note.textContent = 'Submitting as the Maker...';
+      fetch('/dev/submit-for-checker', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (r) {
+        if (r.error) { note.textContent = 'Could not submit: ' + r.error.message; return; }
+        var ok = r.submitted.map(function (s) { return s.contractNo; }).join(', ');
+        var no = r.skipped.map(function (s) { return s.contractNo + ' (' + s.code + ')'; }).join(', ');
+        note.textContent = (r.submitted.length ? 'Endorsement Submitted: ' + ok + '. Log in as Daniel Visser (Checker) to verify and activate.' : 'Nothing was submitted.') + (no ? ' Skipped, already has a quote: ' + no + '. Use Reset data to start clean.' : '');
+      }).catch(function () { note.textContent = 'Could not reach the data service.'; }).then(function () { go.disabled = false; });
+    });
+  })();
+
   // Developer tools, Google Sheets: copy an IMPORTDATA formula for the work list's CSV, then let the link open a new
   // sheet. Pasting the formula into A1 loads the data. IMPORTDATA turns dd/mm/yyyy into a bare serial (46238), so
   // whole numbers in the 2000-2049 date range are written back as dd/mm/yyyy; no code or amount in the lists falls there.
