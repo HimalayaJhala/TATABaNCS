@@ -235,7 +235,7 @@
     read();
   })();
 
-  // Developer tools, Checker test: submits four clean contracts as the Maker would, so the Checker finds them waiting.
+  // Developer tools, Checker test: submits two clean contracts as the Maker would, so the Checker finds them waiting.
   (function () {
     var go = document.getElementById('btn-submit-for-checker'), note = document.getElementById('checker-queue-note');
     if (!go || !note) return;

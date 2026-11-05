@@ -287,18 +287,19 @@ async function search(p, fields) {
   ok(new URL(p.url()).pathname === '/checker/home' && (await text(p, '#user-role')) === 'PREM-ADM' && (await text(p, '#welcome-user')).includes('Daniel Visser'), `the Checker logs in as Daniel Visser, PREM-ADM, and lands on /checker/home (${new URL(p.url()).pathname})`);
   await p.goto(B + '/home');
   ok(new URL(p.url()).pathname === '/checker/home', 'Home takes the Checker to /checker/home');
-  // Developer tools, Checker test: the button leaves four clean contracts at Endorsement Submitted, as the Maker would, and the Checker finds them.
+  // Developer tools, Checker test: the button leaves two clean contracts at Endorsement Submitted, as the Maker would, and the Checker finds them.
   await fetch(DATA + '/admin/reset', { method: 'POST' });
-  const queue = ['119900001001', '112953094001', '113165622001', '113402518001'];
+  const queue = ['119900001001', '112953094001'], other = '113165622001';
   const dev = await (await browser.createBrowserContext()).newPage();
   await dev.goto(B + '/login'); await dev.click('#btn-dev-menu'); await dev.waitForSelector('#btn-submit-for-checker', { visible: true });
   ok(await dev.$eval('#btn-fee-zero-stop', b => getComputedStyle(b).display) === 'none', 'the idle fee-switch-off panel hides Stop live tracking');
   await dev.click('#btn-submit-for-checker');
   await dev.waitForFunction(() => /Endorsement Submitted:/.test(document.getElementById('checker-queue-note').textContent), { timeout: 15000 });
   const queued = (await Promise.all(queue.map(async c => (await (await fetch(`${DATA}/policies/${c}/endorsements`)).json())[0]))).filter(Boolean);
-  ok(queued.length === 4 && queued.every(e => e.stage === 'submitted' && e.subStatus === 'Endorsement Submitted' && e.capturedBy === 'nzwane' && e.submittedBy === 'nzwane'), 'Submit 4 for the Checker: four contracts at Endorsement Submitted, captured and submitted by the Maker');
+  ok(queued.length === 2 && queued.every(e => e.stage === 'submitted' && e.subStatus === 'Endorsement Submitted' && e.capturedBy === 'nzwane' && e.submittedBy === 'nzwane'), 'Submit 2 for the Checker: two contracts at Endorsement Submitted, captured and submitted by the Maker');
+  ok((await (await fetch(`${DATA}/policies/${other}/endorsements`)).json()).length === 0 && (await (await fetch(DATA + '/fee-zero/progress')).json()).done === 2, 'no other contract is touched; the switch-off count is 2');
   const inbox = await (await fetch(DATA + '/mail?to=dvisser')).json();
-  ok(inbox.filter(m => m.kind === 'verify').length === 4, 'the Checker has a "Please verify" email for each');
+  ok(inbox.filter(m => m.kind === 'verify').length === 2, 'the Checker has a "Please verify" email for each');
   // A Checker with no quote open (fresh login, or after Reset data) who lands on Endr Quote Submission gets the one submitted quote, not 56005; a Maker still gets 56005.
   const direct = async user => {
     const pg = await (await browser.createBrowserContext()).newPage();

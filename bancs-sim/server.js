@@ -296,7 +296,7 @@ app.post('/dev/fee-zero/start', async (req, res) => {
   res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);
 });
 
-// Developer menu: puts four clean contracts at Endorsement Submitted, as the Maker would leave them, for the Checker to find.
+// Developer menu: puts two clean contracts at Endorsement Submitted, as the Maker would leave them, for the Checker to find.
 app.post('/dev/submit-for-checker', async (req, res) => {
   const r = await api('POST', '/admin/submit-for-checker');
   res.status(r.error ? 502 : 200).json(r.error ? { error: r.error } : r.data);

@@ -120,11 +120,11 @@ app.post('/admin/clear-endorsements', wrap(req => {
   return { ok: true, cleared: gone.length, contracts: [...touched] };
 }));
 
-// Developer tools: puts clean contracts at Endorsement Submitted, waiting for the Checker. Each one is taken through the
+// Developer tools: puts two clean contracts at Endorsement Submitted, waiting for the Checker. Each one is taken through the
 // Maker's own steps (Endorse/Alter, fee to 0, Acceptance, the five quote-build steps, Submit) by calling the same rules the
 // screens call, with no latency, so the quote, its log, the "Please verify" email and the switch-off count are exactly what
 // a person clicking through as the Maker would leave. A contract that already has a quote in progress is skipped and named.
-const CHECKER_QUEUE = ['119900001001', '112953094001', '113165622001', '113402518001'];   // the dummy sheet's clean rows 1, 5, 6, 7
+const CHECKER_QUEUE = ['119900001001', '112953094001'];   // the dummy sheet's clean rows 1 and 5; only these two
 app.post('/admin/submit-for-checker', wrap(async () => {
   const maker = db().users.find(u => u.kind === 'capturer');
   const done = [], skipped = [];

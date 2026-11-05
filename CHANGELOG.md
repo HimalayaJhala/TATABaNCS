@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-06: the Checker-test button queues two contracts, not four
+
+- **"Submit 2 for the Checker"** now takes only 119900001001 and 112953094001 to Endorsement Submitted. 113165622001 and 113402518001 are left alone. Everything else about the button is as before (the Maker's own steps, no latency, the "Please verify" emails, the switch-off count).
+- **Tests:** `test:forms` checks the two quotes, two emails, a switch-off count of 2, and that 113165622001 has no quote.
+
 ## 2026-11-05: the Checker no longer gets 56005 on a submitted quote
 
 - **Cause:** the session remembers which quote is open per contract, and Reset data (and a fresh login) clears it. After Submit 4 for the Checker, a Checker page still open from before, or a link straight to Endr Quote Submission, had no quote in context and answered `56005`.
