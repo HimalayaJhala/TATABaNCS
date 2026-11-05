@@ -3,6 +3,11 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-06: second Whatfix embed script
+
+- Added `embed/embed.nocache.js` (same account, `e7817f15-91df-440e-906c-959e507b7b6d`) next to the existing `initiator/initiator.nocache.js` in `bancs-sim/views/partials/whatfix.ejs` and `mail-sim/views/whatfix.ejs`, so both load on every BaNCS page (both books) and the mailbox. The tests still block the `whatfix.com` hosts, so timings are unchanged.
+- **Tests:** `test:forms` checks the mailbox carries both scripts.
+
 ## 2026-11-06: the Checker-test button queues two contracts, not four
 
 - **"Submit 2 for the Checker"** now takes only 119900001001 and 112953094001 to Endorsement Submitted. 113165622001 and 113402518001 are left alone. Everything else about the button is as before (the Maker's own steps, no latency, the "Please verify" emails, the switch-off count).
