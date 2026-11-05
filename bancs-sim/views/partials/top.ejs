@@ -33,8 +33,8 @@
     </div>
   </header>
 
-  <% if (user && typeof hideNav === 'undefined') { var single = topNav.length === 1; %>
-  <nav class="topnav<%= single ? ' single' : '' %>" id="top-nav" data-block="top-navigation">
+  <% if (user && typeof hideNav === 'undefined') { %>
+  <nav class="topnav" id="top-nav" data-block="top-navigation">
     <a class="bizops" id="topnav-business-operations" href="/home"><span class="back" aria-hidden="true">&#8630;</span>Business Operations<span class="flag" aria-hidden="true">&#9654;</span></a>
     <div class="tabs">
       <% topNav.forEach(function (t) { %><a id="<%= t.id %>" href="<%= t.href %>" class="<%= t.active ? 'active' : '' %>"><%= t.label %></a><% }) %>

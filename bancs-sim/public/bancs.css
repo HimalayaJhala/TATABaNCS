@@ -52,9 +52,6 @@ a { color: inherit; text-decoration: none; }
 .topnav .tabs { flex: 1; display: flex; justify-content: space-around; align-items: flex-end; }
 .topnav .tabs a { padding: 0 14px; height: 24px; line-height: 24px; color: #000; white-space: nowrap; }
 .topnav .tabs a.active { background: var(--bancs-blue); color: #fff; border-radius: 6px 6px 0 0; padding: 0 44px; }
-.topnav.single { background: var(--bancs-blue); }
-.topnav.single .tabs { justify-content: center; }
-.topnav.single .tabs a.active { background: transparent; border-radius: 0; }
 .subbar { flex: none; height: 26px; background: var(--bancs-blue); display: flex; align-items: center; padding-left: 2px; font: bold 12px Tahoma, Verdana, sans-serif; color: #fff; border-top: 1px solid #0a6a9c; }
 .subbar .search-policy { color: #ffff00; text-decoration: underline; margin-right: 16px; }
 .subbar .star { color: #f7a51c; font-size: 15px; margin-right: 8px; }
@@ -349,9 +346,8 @@ input.date { cursor: pointer; }
 .btn.btn-danger:hover { background: linear-gradient(#f0a99f, #d85a49 55%, #c04535); }
 
 /* ---- opening screens, brought back to the SOP screenshots ---- */
-/* home tiles: three for SYS-ADMIN (recording), two otherwise (SOP); centred at 23/50/77% and 30/70% of the page */
+/* home tiles: Accounting, Business Operation, Re-insurance for both personas; centred at 23/50/77% of the page */
 .tiles { display: grid; grid-template-columns: repeat(3, 1fr); padding: 124px 9.5% 0; justify-items: center; }
-.tiles.two { grid-template-columns: repeat(2, 1fr); padding: 124px 10% 0; }
 .tile { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; width: 150px; height: 82px; padding: 4px 4px 7px; font: 13px Arial, Helvetica, sans-serif; color: #1c2a44; }
 .tile svg { width: 42px; height: 42px; margin: 0; }
 .tile span { line-height: 14px; }

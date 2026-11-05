@@ -3,6 +3,13 @@
 Changes to the dummy BaNCS site and its test data. Add an entry at the top for every change, then commit
 (`git add -A && git commit`). Run the test suites before committing; they are listed in the README.
 
+## 2026-11-05: the Checker's screens match the Maker's
+
+- **Same chrome for both personas.** The Checker's home now shows the Maker's three tiles (Accounting, Business Operation, Re-insurance) and the top bar shows the same seven tabs (Work Items, Business Partners, Maintain Intermediary, New Business, Policy Servicing, Claims, Document & Fax). Before, the Checker had two tiles and one tab, from the recording's verifier profile. The Maker's other tabs and tiles open the same placeholder pages for both.
+- **Unchanged:** the Checker's flow and rules. Search, open the policy, Endorsement Quotes, the serial, Endr Quote Submission (Endorsement Submitted), then Save, Reject or Activate, ending at Approved Endorsed Quote. The role strip still reads PREM-ADM, the Checker still lands on `/checker/home`, and Endorse/Alter and the quote-build steps are still refused for the Checker by the data API (`71037`).
+- Removed the single-tab and two-tile styles, which nothing uses now.
+- **Tests:** `npm test` checks the Checker's home tiles and seven tabs (84 checks). `test:split`, `test:transition` and `test:forms` pass.
+
 ## 2026-11-05: nine-row dummy sheet and the contract number check
 
 - **The dummy sheet** (`Split Fee Cases and Annuities Aug 2026-synthetic`, Excel and PDF) now has nine rows: 1 happy path (119900001001), 2 lapsed (102790002001, `56020`), 3 ID mismatch (110671307001), 4 a contract number with 11 digits (11316223100), 5 to 9 happy path (112953094001, 113165622001, 113402518001, 112045877001, 112718459001). 112333103001 (Legal Verification blank) is no longer on it; it stays on the full work list.

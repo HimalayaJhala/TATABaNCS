@@ -104,18 +104,16 @@ function leftNav(productCode, contractNo, endorsement, active) {
     }));
 }
 
-// Top navigation by role. The verifier profile in the recording only had Policy Servicing.
-const TOP = {
-  'SYS-ADMIN': [
-    ['work-items', 'Work Items'], ['business-partners', 'Business Partners'],
-    ['maintain-intermediary', 'Maintain Intermediary'], ['new-business', 'New Business'],
-    ['policy-servicing', 'Policy Servicing'], ['claims', 'Claims'], ['document-fax', 'Document & Fax']
-  ],
-  'PREM-ADM': [['policy-servicing', 'Policy Servicing']]
-};
+// Top navigation. The Checker sees exactly what the Maker sees; what each can do is decided by the data API
+// (rules.js), not by hiding tabs. `role` is kept in the signature in case a persona ever needs its own set.
+const TOP = [
+  ['work-items', 'Work Items'], ['business-partners', 'Business Partners'],
+  ['maintain-intermediary', 'Maintain Intermediary'], ['new-business', 'New Business'],
+  ['policy-servicing', 'Policy Servicing'], ['claims', 'Claims'], ['document-fax', 'Document & Fax']
+];
 
 function topNav(role, active) {
-  return (TOP[role] || TOP['SYS-ADMIN']).map(([slug, label]) => ({
+  return TOP.map(([slug, label]) => ({
     slug, label, id: `topnav-${slug}`,
     href: slug === 'policy-servicing' ? '/policy-servicing/search' : `/module/${slug}`,
     active: slug === active

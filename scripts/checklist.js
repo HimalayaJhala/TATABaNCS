@@ -196,6 +196,11 @@ async function accept(p, contract, date) {
   await v.setViewport({ width: 1100, height: 620 });
   await login(v, 'dvisser');
   ok((await text(v, '#user-role')) === 'PREM-ADM', 'verifier header shows PREM-ADM');
+  const tiles = await v.$$eval('.tile', a => a.map(x => x.id));
+  ok(['tile-accounting', 'tile-business-operation', 'tile-reinsurance'].every(t => tiles.includes(t)) && tiles.length === 3, `verifier home shows the same three tiles as the capturer (${tiles.join(', ')})`);
+  await step(v, '#tile-business-operation'); await step(v, '#topnav-policy-servicing');
+  const vTabs = await v.$$eval('#top-nav .tabs a', a => a.map(x => x.textContent.trim()));
+  ok(vTabs.length === 7 && vTabs.includes('Work Items') && vTabs.includes('Policy Servicing') && vTabs.includes('Claims'), `verifier has the same seven top tabs as the capturer (${vTabs.join(', ')})`);
   await search(v, C);
   ok((await text(v, `#result-id-${C}`)) === listId, 'verifier re-checks ID number against the work list');
   await step(v, `#result-link-${C}`);

@@ -413,7 +413,7 @@ While a step loads, the screen keeps its layout: the sections go blank in place,
 
 ## Checker (Verification Steps in the SOP)
 
-Log in as the Checker (dvisser), who lands on `/checker/home`, then, as the SOP lists them: Policy Servicing > Contract No. > Search > the blue policy number > **Endorsement Quotes** > the serial for "Change Advisor Details" > **Endr Quote Submission** (sub status Endorsement Submitted) > **Activate**. The screen returns to Endr Quote Summary with sub status Approved Endorsed Quote. Endr Quote Submission shows Save, Reject and Activate once the Maker has submitted; after Activate or Reject the three stay in place, disabled.
+Log in as the Checker (dvisser), who lands on `/checker/home`. The Checker's screens look and behave like the Maker's: the same three home tiles (Accounting, Business Operation, Re-insurance), the same seven top tabs (Work Items to Document & Fax), the same search, policy page, Endorsement Quotes list and Endr Quote Submission screen. Only the role strip (PREM-ADM) and what the data API allows differ: the Checker cannot Endorse/Alter or run the quote-build steps (`71037`), and Endr Quote Submission shows Save, Reject and Activate instead of Save and Submit. Then, as the SOP lists them: Policy Servicing > Contract No. > Search > the blue policy number > **Endorsement Quotes** > the serial for "Change Advisor Details" > **Endr Quote Submission** (sub status Endorsement Submitted) > **Activate**. The screen returns to Endr Quote Summary with sub status Approved Endorsed Quote. Endr Quote Submission shows Save, Reject and Activate once the Maker has submitted; after Activate or Reject the three stay in place, disabled.
 
 ## Relationship Transition List and the closed book
 
